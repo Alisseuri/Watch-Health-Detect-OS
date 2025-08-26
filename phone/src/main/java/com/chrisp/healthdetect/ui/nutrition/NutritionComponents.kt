@@ -44,6 +44,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -57,9 +58,13 @@ import com.chrisp.healthdetect.ui.theme.OxygenBlue
 import com.chrisp.healthdetect.ui.theme.ProteinColor
 
 @Composable
-fun BmiCard(result: BmiResult, modifier: Modifier = Modifier) {
+fun BmiCard(
+    result: BmiResult,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
     Card(
-        modifier = modifier.height(200.dp),
+        modifier = modifier.height(200.dp).clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = OxygenBlue)
     ) {

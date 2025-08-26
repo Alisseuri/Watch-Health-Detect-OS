@@ -22,8 +22,11 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.chrisp.healthdetect.ui.profile.Gender
+import com.chrisp.healthdetect.ui.profile.ProfileViewModel
 import com.chrisp.healthdetect.ui.theme.BackgroundGray
 import com.chrisp.healthdetect.ui.util.AppBottomNavigation
 
@@ -31,12 +34,16 @@ import com.chrisp.healthdetect.ui.util.AppBottomNavigation
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NutritionStatusScreen(
-    navController: NavController
+    navController: NavController,
+    profileViewModel: ProfileViewModel = viewModel()
 ) {
-    val weightKg = 50f
-    val heightCm = 160f
-    val age = 25
-    val isMale = false
+    val uiState = profileViewModel.uiState
+
+    val weightKg = uiState.weight.toFloatOrNull() ?: 0f
+    val heightCm = uiState.height.toFloatOrNull() ?: 0f
+    val age = profileViewModel.getAge() ?: 0
+    val gender = uiState.gender ?: Gender.WANITA
+    val isMale = uiState.gender == Gender.PRIA
 
     val bmiResult = calculateBmi(weightKg, heightCm)
     val bmr = calculateBmr(weightKg, heightCm, age, isMale)
@@ -64,7 +71,12 @@ fun NutritionStatusScreen(
                     BmiCard(
                         result = bmiResult,
                         modifier = Modifier
-                            .weight(1f)
+                            .weight(1f),
+                        onClick = {
+                            if (heightCm > 0 && weightKg > 0 && age > 0) {
+                                navController.navigate("bmiDetail/$age/${gender.name}/$heightCm/$weightKg")
+                            }
+                        }
                     )
                     BmrCard(
                         bmr = bmr,

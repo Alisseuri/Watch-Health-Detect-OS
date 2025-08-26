@@ -19,6 +19,7 @@ enum class Race(val displayName: String) {
     ASIA("Asia"),
     LAINNYA("Lainnya")
 }
+
 enum class ActivityLevel(val displayName: String, val value: Float) {
     BEDREST("BEDREST", 1.2f),
     RINGAN("RINGAN", 1.3f),

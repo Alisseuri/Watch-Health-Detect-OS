@@ -14,15 +14,19 @@ import androidx.annotation.RequiresApi
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.chrisp.healthdetect.ui.activity.ActivityScreen
+import com.chrisp.healthdetect.ui.bmi.BmiDetailScreen
 import com.chrisp.healthdetect.ui.dashboard.DashboardScreen
 import com.chrisp.healthdetect.ui.heartrate.HeartRateDetailScreen
 import com.chrisp.healthdetect.ui.nutrition.NutritionStatusScreen
 import com.chrisp.healthdetect.ui.oxygen.OxygenDetailScreen
+import com.chrisp.healthdetect.ui.profile.Gender
 import com.chrisp.healthdetect.ui.profile.ProfileScreen
 import com.chrisp.healthdetect.ui.theme.HealthdetectwearTheme
 
@@ -151,7 +155,46 @@ class MainActivity : ComponentActivity() {
             }
 
             composable("cekgizi") {
-                NutritionStatusScreen(navController = navController)
+                NutritionStatusScreen(
+                    navController = navController,
+                    profileViewModel = viewModel()
+                )
+            }
+
+            composable(
+                route = "bmiDetail/{age}/{gender}/{height}/{weight}",
+                arguments = listOf(
+                    navArgument("age") {
+                        type = NavType.IntType
+                    },
+                    navArgument("gender") {
+                        type = NavType.StringType
+                    },
+                    navArgument("height") {
+                        type = NavType.IntType
+                    },
+                    navArgument("weight") {
+                        type = NavType.IntType
+                    }
+                )
+            ) { backStackEntry ->
+                val age = backStackEntry.arguments?.getInt("age") ?: 0
+                val genderStr = backStackEntry.arguments?.getString("gender") ?: Gender.WANITA.name
+                val gender = Gender.valueOf(genderStr)
+                val height = backStackEntry.arguments?.getInt("height") ?: 0
+                val weight = backStackEntry.arguments?.getInt("weight") ?: 0
+
+                BmiDetailScreen(
+                    age = age,
+                    gender = gender,
+                    heightCm = height,
+                    weightKg = weight,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            composable("aktivitas") {
+                ActivityScreen(navController = navController)
             }
         }
     }
