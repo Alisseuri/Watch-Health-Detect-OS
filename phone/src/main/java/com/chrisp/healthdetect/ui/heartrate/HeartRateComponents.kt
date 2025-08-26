@@ -148,105 +148,23 @@ fun StatsRow(avg:Int, min: Int, max: Int) {
 }
 
 @Composable
-fun SectionTitle(title: String) {
-    Text(
-        text = title,
-        fontSize = 24.sp,
-        fontWeight = FontWeight.Bold,
-        color = DarkText,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 16.dp)
-    )
-}
-
-@Composable
-fun InterpretationCard(text: String) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, OxygenBlue),
-        colors = CardDefaults.cardColors(containerColor = Color.White)
-    ) {
-        Text(
-            text = text,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(16.dp),
-            textAlign = TextAlign.Center
-        )
-    }
-}
-
-@Composable
-fun DetailInterpretationSection(isExpanded: Boolean, onToggle: () -> Unit) {
-    val rotationAngle by animateFloatAsState(
-        targetValue = if (isExpanded) 180f else 0f,
-        label = "arrowRotation"
-    )
-
-    Column(modifier = Modifier.padding(top = 24.dp)) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(onClick = onToggle),
-            shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, HeartRateGreen),
-            colors = CardDefaults.cardColors(containerColor = Color.White)
-        ) {
-            Row(
-                modifier = Modifier.padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    "Detail Interpretasi Data Detak Jantung",
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 1.dp)
-                )
-                Icon(
-                    painter = painterResource(id = R.drawable.arrow_dropdown),
-                    contentDescription = "Toggle Detail",
-                    modifier = Modifier.rotate(rotationAngle)
-                )
-            }
-        }
-
-        AnimatedVisibility(visible = isExpanded) {
-            InterpretationTable()
-        }
-    }
-}
-
-@Composable
-fun InterpretationTable() {
+fun HeartRateInterpretationTable() {
     Column(
         modifier = Modifier
             .padding(top = 8.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(HeartRateGreen)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(HeartRateGreen)
-                .padding(horizontal = 8.dp, vertical = 12.dp)
+            modifier = Modifier.fillMaxWidth().background(HeartRateGreen).padding(horizontal = 8.dp, vertical = 12.dp)
         ) {
             TableCell(text = "HR (BPM)", weight = 0.25f, isHeader = true)
             TableCell(text = "Interpretasi", weight = 0.3f, isHeader = true)
             TableCell(text = "Kemungkinan Penyebab", weight = 0.45f, isHeader = true)
         }
         Divider(color = Color.White.copy(alpha = 0.5f))
-
         heartRateInterpretationTable.forEach { item ->
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color.White)
-                    .padding(horizontal = 8.dp, vertical = 12.dp),
+                modifier = Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 8.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 TableCell(text = item.range, weight = 0.25f)
@@ -257,6 +175,42 @@ fun InterpretationTable() {
         }
     }
 }
+//@Composable
+//fun InterpretationTable() {
+//    Column(
+//        modifier = Modifier
+//            .padding(top = 8.dp)
+//            .clip(RoundedCornerShape(16.dp))
+//            .background(HeartRateGreen)
+//    ) {
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .background(HeartRateGreen)
+//                .padding(horizontal = 8.dp, vertical = 12.dp)
+//        ) {
+//            TableCell(text = "HR (BPM)", weight = 0.25f, isHeader = true)
+//            TableCell(text = "Interpretasi", weight = 0.3f, isHeader = true)
+//            TableCell(text = "Kemungkinan Penyebab", weight = 0.45f, isHeader = true)
+//        }
+//        Divider(color = Color.White.copy(alpha = 0.5f))
+//
+//        heartRateInterpretationTable.forEach { item ->
+//            Row(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .background(Color.White)
+//                    .padding(horizontal = 8.dp, vertical = 12.dp),
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                TableCell(text = item.range, weight = 0.25f)
+//                TableCell(text = item.interpretation, weight = 0.3f)
+//                TableCell(text = item.possibleCauses, weight = 0.45f)
+//            }
+//            Divider(color = Color.LightGray.copy(alpha = 0.5f))
+//        }
+//    }
+//}
 
 @Composable
 fun RowScope.TableCell(text: String, weight: Float, isHeader: Boolean = false) {

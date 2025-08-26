@@ -20,3 +20,13 @@ val LightGrayText = Color(0xFFA4A4A4)
 val RiskLowGreen = Color(0xFF9CCC65)
 val RiskMediumYellow = Color(0xFFFFCA28)
 val RiskHighRed = Color(0xFFEF5350)
+
+val ProteinColor = Color(0xFF789CFF)
+val CarbsColor = Color(0xFF6CCA61)
+val FatColor = Color(0xFFFB995F)
+
+val BmiSangatKurus = Color(0xFF789CFF)
+val BmiKurus = Color(0xFF6CCA61)
+val BmiNormal = Color(0xFFE9D71C)
+val BmiGemuk = Color(0xFFFB995F)
+val BmiObesitas = Color(0xFFEC4A4C)

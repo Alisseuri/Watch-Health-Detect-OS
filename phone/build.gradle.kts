@@ -70,6 +70,10 @@ dependencies {
 
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    implementation("com.patrykandpatrick.vico:compose:2.1.3")
+    implementation("com.patrykandpatrick.vico:core:2.1.3")
+
 // Jika pakai coroutine
-    implementation("com.squareup.retrofit2:adapter-coroutines:0.9.2")
+//    implementation("com.squareup.retrofit2:adapter-coroutines:0.9.2")
 }

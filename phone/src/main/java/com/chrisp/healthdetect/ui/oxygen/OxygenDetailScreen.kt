@@ -1,17 +1,13 @@
-package com.chrisp.healthdetect.ui.heartrate
+package com.chrisp.healthdetect.ui.oxygen
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -19,7 +15,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
-import com.chrisp.healthdetect.R
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,42 +25,37 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.chrisp.healthdetect.ui.dashboard.LottieAnimationPlayer
-import com.chrisp.healthdetect.ui.theme.DarkText
+import com.chrisp.healthdetect.R
 import com.chrisp.healthdetect.ui.theme.HeartRateGreen
-import com.chrisp.healthdetect.ui.theme.LightGrayText
-import com.chrisp.healthdetect.ui.util.formatTimeAgo
+import com.chrisp.healthdetect.ui.theme.OxygenBlue
+import com.chrisp.healthdetect.ui.util.InterpretationCard
 import com.chrisp.healthdetect.ui.util.SectionTitle
 import com.chrisp.healthdetect.ui.util.InterpretationCard
 import com.chrisp.healthdetect.ui.util.DetailInterpretationSection
-import java.sql.Timestamp
-import kotlin.math.max
 
-@Composable
 @OptIn(ExperimentalMaterial3Api::class)
-fun HeartRateDetailScreen (
-    currentBpm: Int,
-    avgBpm: Int,
-    minBpm: Int,
-    maxBpm: Int,
+@Composable
+fun OxygenDetailScreen(
+    currentSpo2: Int,
     lastUpdateTimestamp: Long,
     onBackClick: () -> Unit
 ) {
-    val interpretation = getInterpretationForBpm(currentBpm)
+    val interpretation = getOxygenInterpretation(currentSpo2)
     var isDetailExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(
-                    "Detak Jantung",
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 30.sp
-                ) },
+                title = {
+                    Text(
+                        "Oxygen Level",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 30.sp
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
@@ -87,43 +77,41 @@ fun HeartRateDetailScreen (
                 .padding(paddingValues)
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
-        ){
+        ) {
             item {
                 Spacer(modifier = Modifier.height(24.dp))
-                MainBpmDisplay(bpm = currentBpm, timestamp = lastUpdateTimestamp)
-            }
-            
-            item {
-                StatsRow(avg = avgBpm, min = minBpm, max = maxBpm)
+                MainSpo2Display(spo2 = currentSpo2, timestamp = lastUpdateTimestamp)
+
             }
 
             item {
+                Spacer(modifier = Modifier.height(32.dp))
                 SectionTitle(title = "Interpretasi")
-                InterpretationCard(text = interpretation.description)
+                InterpretationCard(
+                    text = interpretation.description
+                )
             }
 
             item {
                 DetailInterpretationSection(
-                    title = "Detail Interpretasi Data Detak Jantung",
-                    borderColor = HeartRateGreen,
+                    title = "Interpretasi Data Oksigen",
+                    borderColor = OxygenBlue,
                     isExpanded = isDetailExpanded,
                     onToggle = { isDetailExpanded = !isDetailExpanded },
-                    tableContent = { HeartRateInterpretationTable() }
+                    tableContent = { OxygenInterpretationTable() }
                 )
             }
         }
     }
+
 }
 
 @Preview(showBackground = true)
 @Composable
-fun HeartRateDetailScreenPreview() {
-        HeartRateDetailScreen(
-            currentBpm = 55,
-            avgBpm = 97,
-            minBpm = 42,
-            maxBpm = 120,
-            lastUpdateTimestamp = System.currentTimeMillis(),
-            onBackClick = {}
-        )
+fun OxygenDetailPreview() {
+    OxygenDetailScreen(
+        currentSpo2 = 98,
+        lastUpdateTimestamp = System.currentTimeMillis(),
+        onBackClick = {}
+    )
 }

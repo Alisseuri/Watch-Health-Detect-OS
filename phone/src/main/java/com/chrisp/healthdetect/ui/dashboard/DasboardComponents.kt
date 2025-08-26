@@ -73,6 +73,7 @@ fun VitalsSection(
     oxygenLevel: Int,
     lastUpdateTimestamp: Long,
     onHeartRateCardClick: () -> Unit,
+    onOxygenCardClick: () -> Unit
 ) {
     Row (
         modifier = Modifier
@@ -90,7 +91,8 @@ fun VitalsSection(
         OxygenCard(
             modifier = Modifier
                 .weight(1f),
-            oxygenLevel = oxygenLevel
+            oxygenLevel = oxygenLevel,
+            onClick = onOxygenCardClick
         )
     }
 }
@@ -178,9 +180,15 @@ fun HeartRateCard(
 }
 
 @Composable
-fun OxygenCard(modifier: Modifier = Modifier, oxygenLevel: Int) {
+fun OxygenCard(
+    modifier: Modifier = Modifier,
+    oxygenLevel: Int,
+    onClick: () -> Unit
+) {
     Card(
-        modifier = modifier.height(260.dp),
+        modifier = modifier
+            .height(260.dp)
+            .clickable(onClick = onClick),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         border = BorderStroke(1.dp, OxygenBlue)
@@ -291,7 +299,8 @@ fun VitalsSectionPreview() {
         heartRate = 88,
         oxygenLevel = 98,
         lastUpdateTimestamp = System.currentTimeMillis(),
-        onHeartRateCardClick = {}
+        onHeartRateCardClick = {},
+        onOxygenCardClick = {}
     )
 }
 

@@ -50,7 +50,8 @@ fun DashboardScreen(
     onUsernameChange: (String) -> Unit,
     oxygenLevel: String,
     onOxygenLevelChange: (String) -> Unit,
-    onHeartRateCardClick: () -> Unit
+    onHeartRateCardClick: () -> Unit,
+    onOxygenCardClick: () -> Unit
 ) {
     val ascvdScore = 4
     val framinghamScore = 6
@@ -96,7 +97,8 @@ fun DashboardScreen(
                     heartRate = heartRate,
                     oxygenLevel = oxygenLevel.toIntOrNull() ?: 0,
                     lastUpdateTimestamp = lastUpdatedTimestamp,
-                    onHeartRateCardClick = onHeartRateCardClick
+                    onHeartRateCardClick = onHeartRateCardClick,
+                    onOxygenCardClick = onOxygenCardClick
                 )
             }
 
@@ -156,6 +158,7 @@ fun DashboardScreenPreview() {
             onUsernameChange = {},
             oxygenLevel = "98",
             onOxygenLevelChange = {},
-            onHeartRateCardClick = {}
+            onHeartRateCardClick = {},
+            onOxygenCardClick = {}
         )
 }

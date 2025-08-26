@@ -70,7 +70,12 @@ fun AppBottomNavigation(
     }
 }
 
-sealed class Screen(val route: String, val title: String, val icon: Int, val selectedIcon: Int) {
+sealed class Screen(
+    val route: String,
+    val title: String,
+    val icon: Int,
+    val selectedIcon: Int
+) {
     object Dashboard : Screen("dashboard", "Dashboard", R.drawable.dashboard, R.drawable.dashboard_clicked)
     object Profil : Screen("profile", "Profil", R.drawable.profile, R.drawable.profile_clicked)
     object Aktivitas : Screen("aktivitas", "Aktivitas", R.drawable.activity, R.drawable.activity_clicked)

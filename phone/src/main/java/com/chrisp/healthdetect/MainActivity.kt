@@ -21,6 +21,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.chrisp.healthdetect.ui.dashboard.DashboardScreen
 import com.chrisp.healthdetect.ui.heartrate.HeartRateDetailScreen
+import com.chrisp.healthdetect.ui.nutrition.NutritionStatusScreen
+import com.chrisp.healthdetect.ui.oxygen.OxygenDetailScreen
 import com.chrisp.healthdetect.ui.profile.ProfileScreen
 import com.chrisp.healthdetect.ui.theme.HealthdetectwearTheme
 
@@ -94,6 +96,9 @@ class MainActivity : ComponentActivity() {
                     onHeartRateCardClick = {
                         val avg = 97; val min = 42; val max = 120
                         navController.navigate("heartRateDetail/$heartRate/$avg/$min/$max/$lastUpdateTimestamp")
+                    },
+                    onOxygenCardClick = {
+                        navController.navigate("oxygenDetail/$oxygenLevel/$lastUpdateTimestamp")
                     }
                 )
             }
@@ -126,6 +131,27 @@ class MainActivity : ComponentActivity() {
                     lastUpdateTimestamp = timestamp,
                     onBackClick = { navController.popBackStack() }
                 )
+            }
+
+            composable(
+                route = "oxygenDetail/{currentSpo2}/{timestamp}",
+                arguments = listOf(
+                    navArgument("currentSpo2") { type = NavType.StringType },
+                    navArgument("timestamp") { type = NavType.LongType }
+                )
+            ) { backStackEntry ->
+                val currentSpo2 = backStackEntry.arguments?.getString("currentSpo2")?.toIntOrNull() ?: 0
+                val timestamp = backStackEntry.arguments?.getLong("timestamp") ?: 0L
+
+                OxygenDetailScreen(
+                    currentSpo2 = currentSpo2,
+                    lastUpdateTimestamp = timestamp,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            composable("cekgizi") {
+                NutritionStatusScreen(navController = navController)
             }
         }
     }

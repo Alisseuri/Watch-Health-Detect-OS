@@ -41,3 +41,4 @@ data class AscvdResult(
     val ascvdLevel: String,
     val ascvdMessage: String,
     val assessmentDate: String
+)
