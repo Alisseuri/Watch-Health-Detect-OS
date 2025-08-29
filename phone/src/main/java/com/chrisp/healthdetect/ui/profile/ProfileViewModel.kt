@@ -138,7 +138,6 @@ class ProfileViewModel(
     // === Submit to Repository ===
     @RequiresApi(Build.VERSION_CODES.O)
     fun submitAll() {
-        // Validate input first
         val validationError = validateInput()
         if (validationError != null) {
             _error.value = validationError
@@ -159,7 +158,7 @@ class ProfileViewModel(
             systolicBP = uiState.systolicBp.toInt(),
             isSmoker = uiState.isSmoker == YesNo.YA,
             isDiabetic = uiState.hasDiabetes == YesNo.YA,
-            restingHeartRates = listOf(87) // placeholder
+            restingHeartRates = listOf(87)
         )
 
         _loading.value = true
@@ -167,17 +166,20 @@ class ProfileViewModel(
 
         viewModelScope.launch {
             try {
-                // Framingham
+                // Single call to Framingham (which includes ASCVD data)
                 val framinghamRes = repository.submitFramingham(framinghamRequest)
                 _framinghamResult.value = framinghamRes
+                _ascvdResult.value = framinghamRes  // Same response contains ASCVD data
 
-                // ASCVD
-                val ascvdRes = repository.submitAscvd(framinghamRequest)
-                _ascvdResult.value = ascvdRes
+                // Nutrition call
+                val userId = framinghamRes.user.id
+                if (userId.isNullOrBlank()) {
+                    _error.value = "User ID not found from Framingham response"
+                    return@launch
+                }
 
-                // Nutrition
                 val nutritionReq = NutritionRequest(
-                    userId = framinghamRes.user.id,
+                    userId = userId,
                     weight = uiState.weight.toFloat(),
                     height = uiState.height.toFloat(),
                     activityLevel = uiState.activityLevel.name.lowercase(),
@@ -186,9 +188,7 @@ class ProfileViewModel(
                 val nutritionRes = repository.submitNutrition(nutritionReq)
                 _nutritionResult.value = nutritionRes
 
-                // Switch to display mode on success
                 setEditMode(false)
-
             } catch (e: Exception) {
                 _error.value = "Error: ${e.message}"
                 android.util.Log.e("ProfileViewModel", "Submit failed", e)
