@@ -42,3 +42,43 @@ data class AscvdResult(
     val ascvdMessage: String,
     val assessmentDate: String
 )
+
+data class NutritionRequest(
+    val userId: String,
+    val weight: Float,
+    val height: Float,
+    val activityLevel: String,
+    val stressLevel: String
+)
+
+data class NutritionResponse(
+    val user: User,
+    val nutritionData: NutritionData,
+    val result: NutritionResult
+)
+
+data class NutritionData(
+    val id: String,
+    val userId: String,
+    val weight: Float,
+    val height: Float,
+    val activityLevel: String,
+    val stressLevel: String
+)
+
+data class NutritionResult(
+    val bmi: Float,
+    val bmiCategory: String,
+    val idealWeight: Float,
+    val bmr: Float,
+    val tee: Float,
+    val proteinGram: Float,
+    val proteinKcal: Float,
+    val proteinPercent: Float,
+    val fatGram: Float,
+    val fatKcal: Float,
+    val fatPercent: Float,
+    val carbGram: Float,
+    val carbKcal: Float,
+    val carbPercent: Float
+)

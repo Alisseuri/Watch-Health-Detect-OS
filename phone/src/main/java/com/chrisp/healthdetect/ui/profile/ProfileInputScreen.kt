@@ -1,5 +1,6 @@
 package com.chrisp.healthdetect.ui.profile
 
+import kotlin.math.roundToInt
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.animateColorAsState
@@ -53,7 +54,7 @@ import java.time.LocalDate
 import java.time.Period
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import kotlin.math.roundToInt
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,6 +64,9 @@ fun ProfileInputScreen(
     uiState: UserProfileData,
     viewModel: ProfileViewModel
 ) {
+    val loading by viewModel.loading.collectAsState()
+    val error by viewModel.error.collectAsState()
+
     Scaffold(
         containerColor = BackgroundGray,
         bottomBar = { AppBottomNavigation(navController = navController, currentRoute = "profile") }
@@ -77,7 +81,10 @@ fun ProfileInputScreen(
             item {
                 InputHeader(
                     name = uiState.name,
-                    onNameChange = viewModel::onNameChange
+                    onNameChange = {
+                        viewModel.onNameChange(it)
+                        viewModel.clearError() // Clear error when user starts typing
+                    }
                 )
             }
 
@@ -86,11 +93,20 @@ fun ProfileInputScreen(
             item {
                 PersonalInfoInput(
                     dob = uiState.dob,
-                    onDobChange = viewModel::onDobChange,
+                    onDobChange = {
+                        viewModel.onDobChange(it)
+                        viewModel.clearError()
+                    },
                     gender = uiState.gender,
-                    onGenderChange = viewModel::onGenderChange,
+                    onGenderChange = {
+                        viewModel.onGenderChange(it)
+                        viewModel.clearError()
+                    },
                     race = uiState.race,
-                    onRaceChange = viewModel::onRaceChange
+                    onRaceChange = {
+                        viewModel.onRaceChange(it)
+                        viewModel.clearError()
+                    }
                 )
             }
 
@@ -105,17 +121,38 @@ fun ProfileInputScreen(
 
             item {
                 ParameterInput(
-                    totalCholesterol = uiState.totalCholesterol, onTotalCholesterolChange = viewModel::onTotalCholesterolChange,
-                    hdlCholesterol = uiState.hdlCholesterol, onHdlCholesterolChange = viewModel::onHdlCholesterolChange,
-                    systolicBp = uiState.systolicBp, onSystolicBpChange = viewModel::onSystolicBpChange,
-                    oxygenSaturation = uiState.oxygenSaturation, onOxygenSaturationChange = viewModel::onOxygenSaturationChange
+                    totalCholesterol = uiState.totalCholesterol,
+                    onTotalCholesterolChange = {
+                        viewModel.onTotalCholesterolChange(it)
+                        viewModel.clearError()
+                    },
+                    hdlCholesterol = uiState.hdlCholesterol,
+                    onHdlCholesterolChange = {
+                        viewModel.onHdlCholesterolChange(it)
+                        viewModel.clearError()
+                    },
+                    systolicBp = uiState.systolicBp,
+                    onSystolicBpChange = {
+                        viewModel.onSystolicBpChange(it)
+                        viewModel.clearError()
+                    },
+                    oxygenSaturation = uiState.oxygenSaturation,
+                    onOxygenSaturationChange = viewModel::onOxygenSaturationChange
                 )
             }
 
             item {
                 NutritionInput(
-                    height = uiState.height, onHeightChange = viewModel::onHeightChange,
-                    weight = uiState.weight, onWeightChange = viewModel::onWeightChange
+                    height = uiState.height,
+                    onHeightChange = {
+                        viewModel.onHeightChange(it)
+                        viewModel.clearError()
+                    },
+                    weight = uiState.weight,
+                    onWeightChange = {
+                        viewModel.onWeightChange(it)
+                        viewModel.clearError()
+                    }
                 )
             }
 
@@ -133,17 +170,52 @@ fun ProfileInputScreen(
                 )
             }
 
+            // Error message display
+            error?.let {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color.Red.copy(alpha = 0.1f)),
+                        border = BorderStroke(1.dp, Color.Red)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                painterResource(id = R.drawable.arrow_dropdown_mini), // You need to add this icon
+                                contentDescription = "Error",
+                                tint = Color.Red,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = error!!,
+                                color = Color.Red,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                }
+            }
+
             item {
                 ActionButtons(
                     onCancelClick = {
                         if (uiState.name.isNotBlank()) viewModel.setEditMode(false)
                     },
-                    onSaveClick = viewModel::saveProfile
+                    onSaveClick = {
+                        if (!loading) {
+                            viewModel.submitAll()
+                        }
+                    },
+                    loading = loading
                 )
             }
         }
     }
 }
+
 
 @Composable
 private fun SectionTitle(title: String) {
@@ -234,7 +306,11 @@ fun AverageHeartRateDisplay(avgRate: Int) {
 }
 
 @Composable
-fun ActionButtons(onCancelClick: () -> Unit, onSaveClick: () -> Unit) {
+fun ActionButtons(
+    onCancelClick: () -> Unit,
+    onSaveClick: () -> Unit,
+    loading: Boolean = false
+) {
     val cancelInteractionSource = remember { MutableInteractionSource() }
     val isCancelPressed by cancelInteractionSource.collectIsPressedAsState()
     val saveInteractionSource = remember { MutableInteractionSource() }
@@ -253,7 +329,8 @@ fun ActionButtons(onCancelClick: () -> Unit, onSaveClick: () -> Unit) {
                 contentColor = if (isCancelPressed) Color.White else HeartRateGreen
             ),
             border = BorderStroke(1.dp, HeartRateGreen),
-            interactionSource = cancelInteractionSource
+            interactionSource = cancelInteractionSource,
+            enabled = !loading
         ) {
             Text("KEMBALI")
         }
@@ -265,9 +342,20 @@ fun ActionButtons(onCancelClick: () -> Unit, onSaveClick: () -> Unit) {
                 containerColor = if (isSavePressed) HeartRateGreen.copy(alpha = 0.8f) else Color.White,
                 contentColor = if (isSavePressed) Color.White else HeartRateGreen
             ),
-            interactionSource = saveInteractionSource
+            interactionSource = saveInteractionSource,
+            enabled = !loading
         ) {
-            Text("SIMPAN")
+            if (loading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    color = HeartRateGreen,
+                    strokeWidth = 2.dp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("MENYIMPAN...")
+            } else {
+                Text("SIMPAN")
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.chrisp.healthdetect.ui.profile
 
+import android.R.attr.level
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
@@ -26,15 +27,59 @@ import androidx.navigation.compose.rememberNavController
 import com.chrisp.healthdetect.ui.theme.BackgroundGray
 import com.chrisp.healthdetect.ui.util.AppBottomNavigation
 import java.time.LocalDate
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.chrisp.healthdetect.repository.ProfileRepository
+import com.chrisp.healthdetect.network.ProfileApiService
+import okhttp3.OkHttpClient
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
+import androidx.compose.runtime.collectAsState
+import androidx.navigation.compose.currentBackStackEntryAsState
+import okhttp3.logging.HttpLoggingInterceptor
+
+
+class ProfileViewModelFactory(private val repository: ProfileRepository) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(ProfileViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return ProfileViewModel(repository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProfileScreen(
-   navController: NavController,
-   profileViewModel: ProfileViewModel = viewModel()
+    navController: NavController
 ) {
-    val uiState = profileViewModel.uiState
+    // Create API service with proper configuration
+    val apiService = remember {
+        val okHttpClient = OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = HttpLoggingInterceptor.Level.BODY
+            })
+            .build()
 
+        Retrofit.Builder()
+            .baseUrl("http://10.0.2.2:5000/") // Use 10.0.2.2 for Android emulator to access localhost
+            // For physical device, use your actual IP address like "http://192.168.1.100:5000/"
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(okHttpClient)
+            .build()
+            .create(ProfileApiService::class.java)
+    }
+
+    val repository = remember { ProfileRepository(apiService) }
+    val profileViewModel: ProfileViewModel = viewModel(factory = ProfileViewModelFactory(repository))
+
+    val uiState = profileViewModel.uiState
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
