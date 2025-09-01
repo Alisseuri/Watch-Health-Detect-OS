@@ -20,6 +20,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.chrisp.healthdetect.network.ProfileApiService
+import com.chrisp.healthdetect.repository.ProfileRepository
 import com.chrisp.healthdetect.ui.activity.ActivityScreen
 import com.chrisp.healthdetect.ui.bmi.BmiDetailScreen
 import com.chrisp.healthdetect.ui.dashboard.DashboardScreen
@@ -28,7 +30,14 @@ import com.chrisp.healthdetect.ui.nutrition.NutritionStatusScreen
 import com.chrisp.healthdetect.ui.oxygen.OxygenDetailScreen
 import com.chrisp.healthdetect.ui.profile.Gender
 import com.chrisp.healthdetect.ui.profile.ProfileScreen
+import com.chrisp.healthdetect.ui.profile.ProfileViewModel
+import com.chrisp.healthdetect.ui.profile.ProfileViewModelFactory
 import com.chrisp.healthdetect.ui.theme.HealthdetectwearTheme
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 @RequiresApi(Build.VERSION_CODES.O)
 class MainActivity : ComponentActivity() {
@@ -154,10 +163,37 @@ class MainActivity : ComponentActivity() {
                 )
             }
 
+            // Replace your "cekgizi" composable in MainActivity with this:
+
             composable("cekgizi") {
+                // Create API service and repository for this screen
+                val apiService = remember {
+                    val okHttpClient = OkHttpClient.Builder()
+                        .connectTimeout(30, TimeUnit.SECONDS)
+                        .readTimeout(30, TimeUnit.SECONDS)
+                        .writeTimeout(30, TimeUnit.SECONDS)
+                        .addInterceptor(HttpLoggingInterceptor().apply {
+                            level = HttpLoggingInterceptor.Level.BODY
+                        })
+                        .build()
+
+                    Retrofit.Builder()
+                        .baseUrl("http://10.0.2.2:5000/")
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .client(okHttpClient)
+                        .build()
+                        .create(ProfileApiService::class.java)
+                }
+
+                val repository = remember { ProfileRepository(apiService) }
+                val profileViewModel: ProfileViewModel = viewModel(factory = ProfileViewModelFactory(
+                    repository
+                )
+                )
+
                 NutritionStatusScreen(
                     navController = navController,
-                    profileViewModel = viewModel()
+                    profileViewModel = profileViewModel
                 )
             }
 
