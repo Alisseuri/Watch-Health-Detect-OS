@@ -83,4 +83,13 @@ dependencies {
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.ui.tooling)
     debugImplementation(libs.ui.test.manifest)
+
+    implementation("androidx.core:core-ktx:1.17.0")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.9.0")
+    implementation("androidx.wear.compose:compose-material:1.5.0")
+    implementation("androidx.activity:activity-compose:1.10.1")
+
+    implementation("com.google.android.horologist:horologist-compose-layout:0.7.15")
+
+    implementation("com.airbnb.android:lottie-compose:6.6.7")
 }
