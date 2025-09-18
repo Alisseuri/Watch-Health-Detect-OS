@@ -23,6 +23,7 @@ class HeartRateService : Service(), SensorEventListener {
     private var heartRateSensor: Sensor? = null
     private var stepCounterSensor: Sensor? = null
 
+
     private var isExerciseActive = false
     private var totalHeartRate = 0f
     private var heartRateSamples = 0
