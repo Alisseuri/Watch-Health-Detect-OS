@@ -1,17 +1,21 @@
 package com.chrisp.healthdetect.ui.heartrate
 
+import android.content.Context
+import android.content.Intent
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.chrisp.healthdetect.HeartRateService
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import com.chrisp.healthdetect.SensorDataRepository
 
 enum class TimerState {
     STOPPED,
@@ -44,8 +48,23 @@ class HeartRateViewModel : ViewModel() {
     private val heartRateSamples = mutableStateListOf<Int>()
     private var timerJob: Job? = null
 
-    fun startTimer() {
+    init {
+        viewModelScope.launch {
+            // Observe heart rate data from the repository
+            SensorDataRepository.heartRate.collect { newRate ->
+                updateHeartRate(newRate)
+            }
+        }
+    }
+
+    fun startTimer(context: Context) {
         if (timerState == TimerState.RUNNING) return
+
+        // Kirim perintah START ke Service
+        val intent = Intent(context, HeartRateService::class.java).apply {
+            action = "ACTION_START_EXERCISE"
+        }
+        context.startService(intent)
 
         if (timerState == TimerState.STOPPED || timerState == TimerState.FINISHED) {
             elapsedTime = 0L
@@ -69,8 +88,15 @@ class HeartRateViewModel : ViewModel() {
         timerJob?.cancel()
     }
 
-    fun stopTimer() {
+    // --- UBAH FUNGSI INI ---
+    fun stopTimer(context: Context) {
         timerJob?.cancel()
+
+        // Kirim perintah STOP ke Service
+        val intent = Intent(context, HeartRateService::class.java).apply {
+            action = "ACTION_STOP_EXERCISE"
+        }
+        context.startService(intent)
 
         val averageBpm = if (heartRateSamples.isNotEmpty()) heartRateSamples.average().toInt() else 0
         result = HeartRateResult(

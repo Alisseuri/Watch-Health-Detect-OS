@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import com.chrisp.healthdetect.SensorDataRepository
 
 data class StepsResult(
     val totalSteps: Int,
@@ -34,6 +35,16 @@ class StepsViewModel : ViewModel() {
         private set
 
     private var timerJob: Job? = null
+
+    init {
+        viewModelScope.launch {
+            // Observe step count data from the repository
+            // Ini akan mengambil total langkah mentah dari sensor
+            SensorDataRepository.stepCount.collect { newCount ->
+                updateStepCount(newCount)
+            }
+        }
+    }
 
     fun startTimer() {
         if (timerState == TimerState.RUNNING) return

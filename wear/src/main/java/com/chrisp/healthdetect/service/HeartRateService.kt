@@ -16,6 +16,7 @@ import android.hardware.SensorManager
 import androidx.core.app.NotificationCompat
 import com.google.android.gms.tasks.Tasks
 import com.google.android.gms.wearable.Wearable
+import com.chrisp.healthdetect.SensorDataRepository
 
 class HeartRateService : Service(), SensorEventListener {
 
@@ -93,6 +94,7 @@ class HeartRateService : Service(), SensorEventListener {
                 val heartRate = event.values[0]
                 if (heartRate > 0) {
                     Log.d(TAG, "Heart Rate: $heartRate")
+                    SensorDataRepository.updateHeartRate(heartRate.toInt())
                     if (isExerciseActive) {
                         totalHeartRate += heartRate
                         heartRateSamples++
@@ -107,6 +109,7 @@ class HeartRateService : Service(), SensorEventListener {
                     currentStepCount = event.values[0].toInt()
                     lastStepUpdateTime = now
                     Log.d(TAG, "Steps: $currentStepCount")
+                    SensorDataRepository.updateStepCount(currentStepCount)
                 }
             }
 

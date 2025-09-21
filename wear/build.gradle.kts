@@ -77,10 +77,13 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.10.2")
     // Optional (recommended): Guava itself, for compatibility
     implementation("com.google.guava:guava:33.4.8-android")
+    implementation(libs.compose.navigation)
 
     // Testing
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.ui.test.junit4)
     debugImplementation(libs.ui.tooling)
     debugImplementation(libs.ui.test.manifest)
+
+    implementation("com.airbnb.android:lottie-compose:6.6.7")
 }
