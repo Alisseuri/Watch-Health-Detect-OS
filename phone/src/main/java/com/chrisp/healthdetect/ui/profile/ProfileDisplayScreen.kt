@@ -51,7 +51,7 @@ fun ProfileDisplayScreen(
     navController: NavController,
     uiState: UserProfileData,
     onEditClick: () -> Unit,
-    viewModel: ProfileViewModel = viewModel()
+    viewModel: ProfileViewModel
 ) {
     Scaffold(
         containerColor = BackgroundGray,

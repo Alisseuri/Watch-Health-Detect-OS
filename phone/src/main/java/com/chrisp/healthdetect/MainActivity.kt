@@ -62,6 +62,31 @@ class MainActivity : ComponentActivity() {
         var username by remember { mutableStateOf("Chris") }
         var oxygenLevel by remember { mutableStateOf("98") }
 
+        // Create shared API service and repository
+        val apiService = remember {
+            val okHttpClient = OkHttpClient.Builder()
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .addInterceptor(HttpLoggingInterceptor().apply {
+                    level = HttpLoggingInterceptor.Level.BODY
+                })
+                .build()
+
+            Retrofit.Builder()
+                .baseUrl("http://10.0.2.2:5000/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(okHttpClient)
+                .build()
+                .create(ProfileApiService::class.java)
+        }
+
+        val repository = remember { ProfileRepository(apiService) }
+
+        // Create shared ProfileViewModel instance
+        val sharedProfileViewModel: ProfileViewModel = viewModel(factory = ProfileViewModelFactory(repository))
+
+
         DisposableEffect(context) {
             val heartRateReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context?, intent: Intent?) {
@@ -76,7 +101,6 @@ class MainActivity : ComponentActivity() {
             val heartRateFilter = IntentFilter("HEART_RATE_UPDATE")
             ContextCompat.registerReceiver(context, heartRateReceiver, heartRateFilter, ContextCompat.RECEIVER_NOT_EXPORTED)
 
-
             val exerciseSummaryReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context?, intent: Intent?) {
                     if (intent?.action == "EXERCISE_SUMMARY_UPDATE") {
@@ -88,7 +112,6 @@ class MainActivity : ComponentActivity() {
             }
             val summaryFilter = IntentFilter("EXERCISE_SUMMARY_UPDATE")
             ContextCompat.registerReceiver(context, exerciseSummaryReceiver, summaryFilter, ContextCompat.RECEIVER_NOT_EXPORTED)
-
 
             onDispose {
                 context.unregisterReceiver(heartRateReceiver)
@@ -117,7 +140,10 @@ class MainActivity : ComponentActivity() {
             }
 
             composable("profile") {
-                ProfileScreen(navController = navController)
+                ProfileScreen(
+                    navController = navController,
+                    profileViewModel = sharedProfileViewModel // <-- HAPUS KOMENTAR & PASS VIEWMODEL INI
+                )
             }
 
             composable(
@@ -163,55 +189,20 @@ class MainActivity : ComponentActivity() {
                 )
             }
 
-            // Replace your "cekgizi" composable in MainActivity with this:
-
             composable("cekgizi") {
-                // Create API service and repository for this screen
-                val apiService = remember {
-                    val okHttpClient = OkHttpClient.Builder()
-                        .connectTimeout(30, TimeUnit.SECONDS)
-                        .readTimeout(30, TimeUnit.SECONDS)
-                        .writeTimeout(30, TimeUnit.SECONDS)
-                        .addInterceptor(HttpLoggingInterceptor().apply {
-                            level = HttpLoggingInterceptor.Level.BODY
-                        })
-                        .build()
-
-                    Retrofit.Builder()
-                        .baseUrl("http://10.0.2.2:5000/")
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .client(okHttpClient)
-                        .build()
-                        .create(ProfileApiService::class.java)
-                }
-
-                val repository = remember { ProfileRepository(apiService) }
-                val profileViewModel: ProfileViewModel = viewModel(factory = ProfileViewModelFactory(
-                    repository
-                )
-                )
-
                 NutritionStatusScreen(
                     navController = navController,
-                    profileViewModel = profileViewModel
+                    profileViewModel = sharedProfileViewModel
                 )
             }
 
             composable(
                 route = "bmiDetail/{age}/{gender}/{height}/{weight}",
                 arguments = listOf(
-                    navArgument("age") {
-                        type = NavType.IntType
-                    },
-                    navArgument("gender") {
-                        type = NavType.StringType
-                    },
-                    navArgument("height") {
-                        type = NavType.IntType
-                    },
-                    navArgument("weight") {
-                        type = NavType.IntType
-                    }
+                    navArgument("age") { type = NavType.IntType },
+                    navArgument("gender") { type = NavType.StringType },
+                    navArgument("height") { type = NavType.IntType },
+                    navArgument("weight") { type = NavType.IntType }
                 )
             ) { backStackEntry ->
                 val age = backStackEntry.arguments?.getInt("age") ?: 0

@@ -166,8 +166,13 @@ class ProfileViewModel(
 
         viewModelScope.launch {
             try {
+                android.util.Log.d("ProfileViewModel", "Starting submitAll process...")
+
                 // Single call to Framingham (which includes ASCVD data)
                 val framinghamRes = repository.submitFramingham(framinghamRequest)
+                android.util.Log.d("ProfileViewModel", "Framingham response received: userId = ${framinghamRes.user.id}")
+
+                // IMPORTANT: Update state flows immediately after getting response
                 _framinghamResult.value = framinghamRes
                 _ascvdResult.value = framinghamRes  // Same response contains ASCVD data
 
@@ -175,9 +180,11 @@ class ProfileViewModel(
                 val userId = framinghamRes.user.id
                 if (userId.isNullOrBlank()) {
                     _error.value = "User ID not found from Framingham response"
+                    android.util.Log.e("ProfileViewModel", "User ID is null or blank")
                     return@launch
                 }
 
+                android.util.Log.d("ProfileViewModel", "Making nutrition call with userId: $userId")
                 val nutritionReq = NutritionRequest(
                     userId = userId,
                     weight = uiState.weight.toFloat(),
@@ -186,7 +193,14 @@ class ProfileViewModel(
                     stressLevel = uiState.stressLevel.name.lowercase()
                 )
                 val nutritionRes = repository.submitNutrition(nutritionReq)
+                android.util.Log.d("ProfileViewModel", "Nutrition response received: userId = ${nutritionRes.user.id}")
+
+                // IMPORTANT: Update nutrition result state flow
                 _nutritionResult.value = nutritionRes
+
+                android.util.Log.d("ProfileViewModel", "All data submitted successfully")
+                android.util.Log.d("ProfileViewModel", "FraminghamResult set: ${_framinghamResult.value != null}")
+                android.util.Log.d("ProfileViewModel", "NutritionResult set: ${_nutritionResult.value != null}")
 
                 setEditMode(false)
             } catch (e: Exception) {
@@ -201,5 +215,42 @@ class ProfileViewModel(
     // Clear error when user starts editing again
     fun clearError() {
         _error.value = null
+    }
+
+    // === Get nutrition data from API ===
+    fun getNutritionResult(userId: String) {
+        viewModelScope.launch {
+            try {
+                _loading.value = true
+                android.util.Log.d("ProfileViewModel", "Calling getNutritionResult for userId: $userId")
+                val nutritionRes = repository.getNutritionResult(userId)
+                android.util.Log.d("ProfileViewModel", "Got nutrition response: ${nutritionRes.user.id}")
+                _nutritionResult.value = nutritionRes
+                android.util.Log.d("ProfileViewModel", "Nutrition result set successfully")
+            } catch (e: Exception) {
+                _error.value = "Error loading nutrition data: ${e.message}"
+                android.util.Log.e("ProfileViewModel", "Failed to get nutrition result", e)
+            } finally {
+                _loading.value = false
+            }
+        }
+    }
+
+    // === Check if user data exists ===
+    fun hasCompletedProfile(): Boolean {
+        // Check if we have either framingham or nutrition result with user data
+        val hasFramingham = _framinghamResult.value?.user?.id != null
+        val hasNutrition = _nutritionResult.value?.user?.id != null
+        android.util.Log.d("ProfileViewModel", "hasFramingham: $hasFramingham, hasNutrition: $hasNutrition")
+        return hasFramingham || hasNutrition
+    }
+
+    fun getCurrentUserId(): String? {
+        // Try to get user ID from either framingham or nutrition result
+        val framinghamId = _framinghamResult.value?.user?.id
+        val nutritionId = _nutritionResult.value?.user?.id
+        val userId = framinghamId ?: nutritionId
+        android.util.Log.d("ProfileViewModel", "getCurrentUserId - framinghamId: $framinghamId, nutritionId: $nutritionId, returning: $userId")
+        return userId
     }
 }

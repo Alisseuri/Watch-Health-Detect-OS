@@ -9,18 +9,6 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-data class BmiResult(
-    val value: Float,
-    val status: String,
-    val color: Color,
-    val illustration: Int
-)
-
-data class MacroNutrients(
-    val proteinGrams: Int,
-    val carbsGrams: Int,
-    val fatGrams: Int
-)
 
 fun calculateBmi(weightKg: Float, heightCm: Float): BmiResult {
     if (heightCm == 0f) return BmiResult(0f, "INVALID", Color.Gray, R.drawable.bmi_normal)

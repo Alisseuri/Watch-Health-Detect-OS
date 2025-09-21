@@ -466,9 +466,9 @@ fun MacroPieChart(macros: MacroNutrients, modifier: Modifier = Modifier) {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.O)
-@Preview(showBackground = true)
-@Composable
-fun NutritionStatusPreview() {
-    NutritionStatusScreen(navController = rememberNavController())
-}
+//@RequiresApi(Build.VERSION_CODES.O)
+//@Preview(showBackground = true)
+//@Composable
+//fun NutritionStatusPreview() {
+//    NutritionStatusScreen(navController = rememberNavController())
+//}

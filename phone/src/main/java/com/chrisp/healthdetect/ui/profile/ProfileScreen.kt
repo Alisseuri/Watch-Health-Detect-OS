@@ -37,6 +37,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.navigation.compose.currentBackStackEntryAsState
 import okhttp3.logging.HttpLoggingInterceptor
 
@@ -54,35 +55,23 @@ class ProfileViewModelFactory(private val repository: ProfileRepository) : ViewM
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProfileScreen(
-    navController: NavController
+    navController: NavController,
+    profileViewModel: ProfileViewModel // <-- Cukup terima ini, sudah lengkap!
 ) {
-    // Create API service with proper configuration
-    val apiService = remember {
-        val okHttpClient = OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
-            .addInterceptor(HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
-            })
-            .build()
-
-        Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:5000/") // Use 10.0.2.2 for Android emulator to access localhost
-            // For physical device, use your actual IP address like "http://192.168.1.100:5000/"
-            .addConverterFactory(GsonConverterFactory.create())
-            .client(okHttpClient)
-            .build()
-            .create(ProfileApiService::class.java)
-    }
-
+    // --- DIHAPUS ---
+    // Jangan buat apiService dan repository di sini.
+    // ViewModel yang Anda terima sudah memilikinya.
+    /*
+    val apiService = remember { ... }
     val repository = remember { ProfileRepository(apiService) }
-    val profileViewModel: ProfileViewModel = viewModel(factory = ProfileViewModelFactory(repository))
+    */
 
-    val uiState = profileViewModel.uiState
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
+    // Langsung gunakan state dari profileViewModel yang diterima
+    val uiState by remember { derivedStateOf { profileViewModel.uiState } }
+    val loading by profileViewModel.loading.collectAsState()
+    val error by profileViewModel.error.collectAsState()
 
+    // Logika ini sudah benar
     if (uiState.isEditMode) {
         ProfileInputScreen(
             navController = navController,
@@ -90,10 +79,12 @@ fun ProfileScreen(
             viewModel = profileViewModel
         )
     } else {
+        // --- DIPERBAIKI ---
         ProfileDisplayScreen(
             navController = navController,
             uiState = uiState,
-            onEditClick = { profileViewModel.setEditMode(true) }
+            onEditClick = { profileViewModel.setEditMode(true) },
+            viewModel = profileViewModel // <-- DITAMBAHKAN: Pass ViewModel ke DisplayScreen
         )
     }
 }
