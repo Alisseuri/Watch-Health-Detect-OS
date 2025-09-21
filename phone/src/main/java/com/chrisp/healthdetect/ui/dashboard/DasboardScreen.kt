@@ -40,21 +40,41 @@ import com.chrisp.healthdetect.ui.theme.LightGrayText
 import com.chrisp.healthdetect.R
 import com.chrisp.healthdetect.ui.theme.HeartRateGreen
 import com.chrisp.healthdetect.ui.util.AppBottomNavigation
+import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.chrisp.healthdetect.model.FraminghamRequest
+import com.chrisp.healthdetect.model.FraminghamResponse
+import com.chrisp.healthdetect.model.NutritionRequest
+import com.chrisp.healthdetect.model.NutritionResponse
+import com.chrisp.healthdetect.network.ProfileApiService
+import com.chrisp.healthdetect.repository.ProfileRepository
+import com.chrisp.healthdetect.ui.profile.ProfileViewModel
+import com.chrisp.healthdetect.ui.profile.ProfileViewModelFactory
+import kotlin.math.roundToInt
+
 
 @Composable
 fun DashboardScreen(
     navController: NavController,
     heartRate: Int,
     lastUpdatedTimestamp: Long,
-    username: String,
-    onUsernameChange: (String) -> Unit,
     oxygenLevel: String,
     onOxygenLevelChange: (String) -> Unit,
     onHeartRateCardClick: () -> Unit,
-    onOxygenCardClick: () -> Unit
+    onOxygenCardClick: () -> Unit,
+    profileViewModel: ProfileViewModel
 ) {
-    val ascvdScore = 4
-    val framinghamScore = 6
+    // Ambil hasil skor dari ViewModel secara reaktif.
+    // Kita hanya perlu satu state, karena keduanya (ascvd & framingham) ada dalam satu response.
+    val apiResult by profileViewModel.framinghamResult.collectAsState()
+
+    // Ambil nama pengguna dari UI state di ViewModel
+    val username = profileViewModel.uiState.name.takeIf { it.isNotBlank() } ?: "Guest"
+
+    // Gunakan skor dari hasil API sesuai dengan struktur data class yang benar.
+    // Default ke 0 jika data belum ada.
+    val ascvdScore = apiResult?.ascvd?.ascvdScore?.roundToInt() ?: 0
+    val framinghamScore = apiResult?.framingham?.riskScore?.roundToInt() ?: 0
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -70,27 +90,7 @@ fun DashboardScreen(
                 .padding(horizontal = 16.dp),
             contentPadding = PaddingValues(bottom = 16.dp)
         ){
-            item {GreetingHeader(username = username) }
-
-//            item {
-//                Column (modifier = Modifier.padding(16.dp)) {
-//                    OutlinedTextField(
-//                        value = username,
-//                        onValueChange = onUsernameChange,
-//                        label = { Text("Nama Pengguna") },
-//                        modifier = Modifier.fillMaxWidth()
-//                    )
-//                    Spacer(modifier = Modifier.height(8.dp))
-//
-//                    OutlinedTextField(
-//                        value = oxygenLevel,
-//                        onValueChange = onOxygenLevelChange,
-//                        label = { Text("Level Oksigen (%)") },
-//                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-//                        modifier = Modifier.fillMaxWidth()
-//                    )
-//                }
-//            }
+            item { GreetingHeader(username = username) }
 
             item {
                 VitalsSection(
@@ -111,6 +111,7 @@ fun DashboardScreen(
                     modifier = Modifier
                         .padding(top = 24.dp, bottom = 8.dp)
                 )
+                // Gunakan ascvdScore yang dinamis
                 RiskScoreCard(score = ascvdScore, riskInfo = getAscvdRisk(ascvdScore))
             }
 
@@ -123,6 +124,7 @@ fun DashboardScreen(
                     modifier = Modifier
                         .padding(top = 24.dp, bottom = 8.dp)
                 )
+                // Gunakan framinghamScore yang dinamis
                 RiskScoreCard(score = framinghamScore, riskInfo = getFraminghamRisk(framinghamScore))
             }
         }
@@ -147,18 +149,42 @@ fun GreetingHeader(username: String) {
 }
 
 
-@Preview(showBackground = true)
-@Composable
-fun DashboardScreenPreview() {
-        DashboardScreen(
-            navController = rememberNavController(),
-            heartRate = 90,
-            lastUpdatedTimestamp = System.currentTimeMillis(),
-            username = "Chris",
-            onUsernameChange = {},
-            oxygenLevel = "98",
-            onOxygenLevelChange = {},
-            onHeartRateCardClick = {},
-            onOxygenCardClick = {}
-        )
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun DashboardScreenPreview() {
+//    // Untuk membuat Preview berfungsi, kita perlu membuat instance palsu (mock) dari ViewModel.
+//    // Ini adalah praktik umum karena ViewModel sering memiliki dependensi (seperti Repository).
+//    val mockViewModel: ProfileViewModel = viewModel(
+//        factory = ProfileViewModelFactory(
+//            ProfileRepository(
+//                // Buat implementasi dummy dari ApiService untuk preview
+//                object : ProfileApiService {
+//                    override suspend fun submitFramingham(request: FraminghamRequest): FraminghamResponse {
+//                        TODO("Not yet implemented")
+//                    }
+//
+//                    override suspend fun submitNutrition(request: NutritionRequest): NutritionResponse {
+//                        TODO("Not yet implemented")
+//                    }
+//
+//                    override suspend fun getNutritionResult(userId: String): NutritionResponse {
+//                        TODO("Not yet implemented")
+//                    }
+//                }
+//            )
+//        )
+//    )
+//    // Atur nama pengguna di ViewModel untuk preview
+//    mockViewModel.onNameChange("Chris")
+//
+//    DashboardScreen(
+//        navController = rememberNavController(),
+//        heartRate = 90,
+//        lastUpdatedTimestamp = System.currentTimeMillis(),
+//        oxygenLevel = "98",
+//        onOxygenLevelChange = {},
+//        onHeartRateCardClick = {},
+//        onOxygenCardClick = {},
+//        profileViewModel = mockViewModel // Pass mock ViewModel ke preview
+//    )
+//}

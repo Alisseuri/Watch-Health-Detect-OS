@@ -59,7 +59,7 @@ class MainActivity : ComponentActivity() {
 
         var heartRate by remember { mutableStateOf(85) }
         var lastUpdateTimestamp by remember { mutableStateOf(System.currentTimeMillis()) }
-        var username by remember { mutableStateOf("Chris") }
+//        var username by remember { mutableStateOf("Chris") }
         var oxygenLevel by remember { mutableStateOf("98") }
 
         // Create shared API service and repository
@@ -119,15 +119,16 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+
         NavHost(navController = navController, startDestination = "dashboard") {
             composable("dashboard") {
                 DashboardScreen(
                     navController = navController,
                     heartRate = heartRate,
                     lastUpdatedTimestamp = lastUpdateTimestamp,
-                    username = username,
-                    onUsernameChange = { newUsername -> username = newUsername },
                     oxygenLevel = oxygenLevel,
+                    // Hapus parameter username, karena data ini akan diambil dari ViewModel
+                    // onUsernameChange = { newUsername -> username = newUsername }, // <-- HAPUS INI
                     onOxygenLevelChange = { newOxygenLevel -> oxygenLevel = newOxygenLevel },
                     onHeartRateCardClick = {
                         val avg = 97; val min = 42; val max = 120
@@ -135,14 +136,15 @@ class MainActivity : ComponentActivity() {
                     },
                     onOxygenCardClick = {
                         navController.navigate("oxygenDetail/$oxygenLevel/$lastUpdateTimestamp")
-                    }
+                    },
+                    profileViewModel = sharedProfileViewModel // <-- TAMBAHKAN INI
                 )
             }
 
             composable("profile") {
                 ProfileScreen(
                     navController = navController,
-                    profileViewModel = sharedProfileViewModel // <-- HAPUS KOMENTAR & PASS VIEWMODEL INI
+                    profileViewModel = sharedProfileViewModel
                 )
             }
 
