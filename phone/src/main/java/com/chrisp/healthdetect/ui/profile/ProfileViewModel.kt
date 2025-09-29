@@ -8,9 +8,13 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.chrisp.healthdetect.model.*
+import com.chrisp.healthdetect.repository.HeartRateRepository
 import com.chrisp.healthdetect.repository.ProfileRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.Period
@@ -66,6 +70,14 @@ class ProfileViewModel(
 
     var uiState by mutableStateOf(UserProfileData())
         private set
+
+    val averageHeartRate: StateFlow<Int> = HeartRateRepository.heartRateDataList.map { list ->
+        if (list.isNotEmpty()) list.average().toInt() else 0
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = 0
+    )
 
     private val _framinghamResult = MutableStateFlow<FraminghamResponse?>(null)
     val framinghamResult: StateFlow<FraminghamResponse?> = _framinghamResult

@@ -165,8 +165,7 @@ class MainActivity : ComponentActivity() {
                     currentBpm = currentBpm,
                     lastUpdateTimestamp = timestamp,
                     onBackClick = {
-                        // Praktik yang baik: bersihkan data repository saat kembali
-                        HeartRateRepository.clearData()
+                        // Praktik yang baik: bersihkan data repository saat kembal
                         navController.popBackStack()
                     }
                 )

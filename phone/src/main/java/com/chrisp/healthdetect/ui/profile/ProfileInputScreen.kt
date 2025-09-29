@@ -66,6 +66,7 @@ fun ProfileInputScreen(
 ) {
     val loading by viewModel.loading.collectAsState()
     val error by viewModel.error.collectAsState()
+    val averageHeartRate by viewModel.averageHeartRate.collectAsState()
 
     Scaffold(
         containerColor = BackgroundGray,
@@ -88,7 +89,7 @@ fun ProfileInputScreen(
                 )
             }
 
-            item { AverageHeartRateDisplay(avgRate = 87) }
+            item { AverageHeartRateDisplay(avgRate = averageHeartRate) }
 
             item {
                 PersonalInfoInput(

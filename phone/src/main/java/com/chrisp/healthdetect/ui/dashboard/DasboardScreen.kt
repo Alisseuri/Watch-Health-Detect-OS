@@ -48,6 +48,7 @@ import com.chrisp.healthdetect.model.NutritionRequest
 import com.chrisp.healthdetect.model.NutritionResponse
 import com.chrisp.healthdetect.network.ProfileApiService
 import com.chrisp.healthdetect.repository.ProfileRepository
+import com.chrisp.healthdetect.repository.HeartRateRepository
 import com.chrisp.healthdetect.ui.profile.ProfileViewModel
 import com.chrisp.healthdetect.ui.profile.ProfileViewModelFactory
 import kotlin.math.roundToInt
@@ -64,15 +65,17 @@ fun DashboardScreen(
     onOxygenCardClick: () -> Unit,
     profileViewModel: ProfileViewModel
 ) {
+    // Ambil data heart rate terbaru dari repository
+    val heartRateDataList by HeartRateRepository.heartRateDataList.collectAsState()
+    val currentHeartRate = heartRateDataList.lastOrNull() ?: heartRate
+
     // Ambil hasil skor dari ViewModel secara reaktif.
-    // Kita hanya perlu satu state, karena keduanya (ascvd & framingham) ada dalam satu response.
     val apiResult by profileViewModel.framinghamResult.collectAsState()
 
     // Ambil nama pengguna dari UI state di ViewModel
     val username = profileViewModel.uiState.name.takeIf { it.isNotBlank() } ?: "Guest"
 
     // Gunakan skor dari hasil API sesuai dengan struktur data class yang benar.
-    // Default ke 0 jika data belum ada.
     val ascvdScore = apiResult?.ascvd?.ascvdScore?.roundToInt() ?: 0
     val framinghamScore = apiResult?.framingham?.riskScore?.roundToInt() ?: 0
 
@@ -94,7 +97,7 @@ fun DashboardScreen(
 
             item {
                 VitalsSection(
-                    heartRate = heartRate,
+                    heartRate = currentHeartRate,
                     oxygenLevel = oxygenLevel.toIntOrNull() ?: 0,
                     lastUpdateTimestamp = lastUpdatedTimestamp,
                     onHeartRateCardClick = onHeartRateCardClick,
@@ -111,7 +114,6 @@ fun DashboardScreen(
                     modifier = Modifier
                         .padding(top = 24.dp, bottom = 8.dp)
                 )
-                // Gunakan ascvdScore yang dinamis
                 RiskScoreCard(score = ascvdScore, riskInfo = getAscvdRisk(ascvdScore))
             }
 
@@ -124,7 +126,6 @@ fun DashboardScreen(
                     modifier = Modifier
                         .padding(top = 24.dp, bottom = 8.dp)
                 )
-                // Gunakan framinghamScore yang dinamis
                 RiskScoreCard(score = framinghamScore, riskInfo = getFraminghamRisk(framinghamScore))
             }
         }

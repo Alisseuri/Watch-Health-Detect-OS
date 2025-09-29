@@ -26,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,6 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.chrisp.healthdetect.repository.HeartRateRepository
 import com.chrisp.healthdetect.ui.dashboard.LottieAnimationPlayer
 import com.chrisp.healthdetect.ui.theme.DarkText
 import com.chrisp.healthdetect.ui.theme.HeartRateGreen
@@ -50,16 +52,30 @@ import kotlin.math.max
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun HeartRateDetailScreen (
-    currentBpm: Int, // Ini adalah BPM terakhir yang diterima, dari navigasi
+    currentBpm: Int,
     lastUpdateTimestamp: Long,
     onBackClick: () -> Unit,
     viewModel: HeartRateDetailViewModel = viewModel()
 ) {
+    // Ambil data heart rate terbaru dari repository
+    val heartRateDataList by HeartRateRepository.heartRateDataList.collectAsState()
+    val latestBpm = heartRateDataList.lastOrNull() ?: currentBpm
+
+    // State untuk menyimpan timestamp yang ter-update
+    var currentTimestamp by remember { mutableStateOf(lastUpdateTimestamp) }
+
+    // Update timestamp setiap kali ada data baru
+    LaunchedEffect(heartRateDataList.size) {
+        if (heartRateDataList.isNotEmpty()) {
+            currentTimestamp = System.currentTimeMillis()
+        }
+    }
+
     val averageBpm by viewModel.averageHeartRate.collectAsState()
     val minBpm by viewModel.minHeartRate.collectAsState()
     val maxBpm by viewModel.maxHeartRate.collectAsState()
 
-    val interpretation = getInterpretationForBpm(currentBpm)
+    val interpretation = getInterpretationForBpm(latestBpm)
     var isDetailExpanded by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -94,7 +110,7 @@ fun HeartRateDetailScreen (
         ){
             item {
                 Spacer(modifier = Modifier.height(24.dp))
-                MainBpmDisplay(bpm = currentBpm, timestamp = lastUpdateTimestamp)
+                MainBpmDisplay(bpm = latestBpm, timestamp = currentTimestamp)
             }
 
             item {

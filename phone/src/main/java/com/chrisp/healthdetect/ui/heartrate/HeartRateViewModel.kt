@@ -34,8 +34,5 @@ class HeartRateDetailViewModel : ViewModel() {
         0
     )
 
-    override fun onCleared() {
-        super.onCleared()
-        HeartRateRepository.clearData()
-    }
+
 }

@@ -16,7 +16,4 @@ object HeartRateRepository {
         }
     }
 
-    fun clearData() {
-        _heartRateDataList.value = emptyList()
-    }
 }
