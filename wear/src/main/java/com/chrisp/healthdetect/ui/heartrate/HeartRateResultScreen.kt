@@ -37,7 +37,6 @@ fun HeartRateResultScreen(result: HeartRateResult, onFinish: () -> Unit) {
         Spacer(modifier = Modifier.height(8.dp))
 
         Text("Average", fontSize = 18.sp)
-        Spacer(modifier = Modifier.height(4.dp))
 
         Text(
             text = buildAnnotatedString {
@@ -46,7 +45,7 @@ fun HeartRateResultScreen(result: HeartRateResult, onFinish: () -> Unit) {
                         brush = Brush.linearGradient(
                             colors = listOf(Color(0xFFFE3154), Color(0xFFFBEB73))
                         ),
-                        fontSize = 60.sp,
+                        fontSize = 50.sp,
                         fontWeight = FontWeight.Bold
                     )
                 ) {
@@ -60,7 +59,6 @@ fun HeartRateResultScreen(result: HeartRateResult, onFinish: () -> Unit) {
             }
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
 
         Text(formatDuration(result.durationSeconds), color = Color.Gray)
 //        Divider(modifier = Modifier.width(100.dp).padding(vertical = 4.dp), color = Color.Gray)

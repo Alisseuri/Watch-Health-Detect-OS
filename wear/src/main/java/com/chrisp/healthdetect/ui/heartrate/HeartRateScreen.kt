@@ -106,7 +106,6 @@ private fun InitialScreen(
         Spacer(modifier = Modifier
             .weight(1f))
         LottieAnimationPlayer(animationRes = R.raw.heart2, modifier = Modifier.size(100.dp))
-        Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = onStartClick,
@@ -139,14 +138,12 @@ private fun CountingScreen(viewModel: HeartRateViewModel) {
     ) {
         Spacer(modifier = Modifier.weight(0.5f))
         LottieAnimationPlayer(animationRes = R.raw.heart2, modifier = Modifier.size(80.dp))
-        Spacer(modifier = Modifier.height(16.dp))
-
         Text(
             buildAnnotatedString {
                 withStyle(style = SpanStyle(fontSize = 48.sp, fontWeight = FontWeight.Bold, color = Color(0xFFFBEB73))) {
                     append("$heartRate")
                 }
-                withStyle(style = SpanStyle(fontSize = 24.sp)) {
+                withStyle(style = SpanStyle(fontSize = 20.sp)) {
                     append(" BPM")
                 }
             }

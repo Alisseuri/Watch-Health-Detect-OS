@@ -50,7 +50,6 @@ class HeartRateViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            // Observe heart rate data from the repository
             SensorDataRepository.heartRate.collect { newRate ->
                 updateHeartRate(newRate)
             }
@@ -60,7 +59,6 @@ class HeartRateViewModel : ViewModel() {
     fun startTimer(context: Context) {
         if (timerState == TimerState.RUNNING) return
 
-        // Kirim perintah START ke Service
         val intent = Intent(context, HeartRateService::class.java).apply {
             action = "ACTION_START_EXERCISE"
         }
@@ -88,11 +86,9 @@ class HeartRateViewModel : ViewModel() {
         timerJob?.cancel()
     }
 
-    // --- UBAH FUNGSI INI ---
     fun stopTimer(context: Context) {
         timerJob?.cancel()
 
-        // Kirim perintah STOP ke Service
         val intent = Intent(context, HeartRateService::class.java).apply {
             action = "ACTION_STOP_EXERCISE"
         }

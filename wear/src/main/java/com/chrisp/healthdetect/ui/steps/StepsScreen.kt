@@ -1,6 +1,10 @@
 package com.chrisp.healthdetect.ui.steps
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -18,8 +22,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.ButtonBorder
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.Text
@@ -30,28 +36,37 @@ import com.chrisp.healthdetect.utils.LottieAnimationPlayer
 
 @Composable
 fun StepsScreen(viewModel: StepsViewModel = viewModel()) {
-    val timerState = viewModel.timerState
-    val result = viewModel.result
-
     val context = LocalContext.current
-    LaunchedEffect(Unit) {
-        val intent = Intent(context, HeartRateService::class.java)
-        context.startService(intent)
-    }
 
-    when (timerState) {
-        TimerState.STOPPED -> InitialStepsScreen(onStartClick = { viewModel.startTimer() })
-        TimerState.RUNNING, TimerState.PAUSED -> StepsCountingScreen(viewModel = viewModel)
-        TimerState.FINISHED -> {
-            if (result != null) {
-                StepsResultScreen(
-                    result = result,
-                    onFinish = { viewModel.finishSession() }
-                )
-            } else {
-                InitialStepsScreen(onStartClick = { viewModel.startTimer() })
+    var hasPermission by remember { mutableStateOf(ContextCompat.checkSelfPermission(context,
+        Manifest.permission.BODY_SENSORS) == PackageManager.PERMISSION_GRANTED) }
+    val permissionLauncher = rememberLauncherForActivityResult (
+        contract = ActivityResultContracts.RequestPermission(),
+        onResult = { isGranted -> hasPermission = isGranted }
+    )
+
+    if (hasPermission) {
+        val timerState = viewModel.timerState
+        val result = viewModel.result
+
+        when (timerState) {
+            TimerState.STOPPED -> InitialStepsScreen (onStartClick = { viewModel.startTimer(context) })
+            TimerState.RUNNING, TimerState.PAUSED -> StepsCountingScreen(viewModel = viewModel)
+            TimerState.FINISHED -> {
+                if (result != null) {
+                    StepsResultScreen(
+                        result = result,
+                        onFinish = { viewModel.finishSessionAndReset() }
+                    )
+                } else {
+                    InitialStepsScreen(
+                        onStartClick = { viewModel.startTimer(context) }
+                    )
+                }
             }
         }
+    } else {
+        RequestPermissionScreen { permissionLauncher.launch(Manifest.permission.BODY_SENSORS) }
     }
 }
 
@@ -66,14 +81,11 @@ private fun InitialStepsScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Spacer(modifier = Modifier
-            .weight(1f))
+        Spacer(modifier = Modifier.weight(1f))
         LottieAnimationPlayer(
             animationRes = R.raw.steps,
-            modifier = Modifier
-                .size(100.dp)
+            modifier = Modifier.size(100.dp)
         )
-        Spacer(modifier = Modifier.height(24.dp))
         Button(
             onClick = onStartClick,
             modifier = Modifier
@@ -84,10 +96,10 @@ private fun InitialStepsScreen(
                 backgroundColor = Color.Transparent,
                 contentColor = Color.White
             ),
-            border = ButtonDefaults.outlinedButtonBorder(borderColor = Color(0xFF11E1F5))
+            border = ButtonDefaults.outlinedButtonBorder(borderColor = Color(0xFF00BCD4))
         ) {
             Text(
-                "Start Count",
+                "Start Activity",
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp
             )
@@ -97,59 +109,56 @@ private fun InitialStepsScreen(
 }
 
 @Composable
-private fun StepsCountingScreen(viewModel: StepsViewModel) {
-    val stepCount = viewModel.stepCount
-    val elapsedTime = viewModel.elapsedTime
-    val timerState = viewModel.timerState
-
+private fun StepsCountingScreen(
+    viewModel: StepsViewModel
+) {
+    val context = LocalContext.current
     Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Spacer(modifier = Modifier.weight(0.5f))
         LottieAnimationPlayer(
             animationRes = R.raw.steps,
-            modifier = Modifier.size(80.dp)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            buildAnnotatedString {
-                withStyle(
-                    style = SpanStyle(
-                        fontSize = 48.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF11E1F5)
-                    )
-                ) {
-                    append("$stepCount")
-                }
-                withStyle(
-                    style = SpanStyle(
-                        fontSize = 24.sp,
-                        color = Color.White
-                    )
-                ) {
-                    append(" steps")
-                }
-            }
-        )
+            modifier = Modifier
+                .size(60.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            MetricDisplay(value = "${viewModel.heartRate}", unit = "BPM")
+            MetricDisplay(value = "${viewModel.stepCount}", unit = "Steps")
+        }
 //        Divider(modifier = Modifier.width(100.dp).padding(vertical = 8.dp), color = Color.Gray)
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            Text(viewModel.formatTime(elapsedTime), fontSize = 24.sp)
-            Spacer(modifier = Modifier.width(16.dp))
-            ControlButton(iconRes = R.drawable.icon_stop, onClick = { viewModel.stopTimer() })
-            Spacer(modifier = Modifier.width(8.dp))
-            if (timerState == TimerState.RUNNING) {
-                ControlButton(iconRes = R.drawable.icon_pause, onClick = { viewModel.pauseTimer() })
+            Text(
+                viewModel.formatTime(viewModel.elapsedTime),
+                fontSize = 24.sp
+            )
+
+            ControlButton(
+                iconRes = R.drawable.icon_stop,
+                onClick = { viewModel.stopTimer(context) }
+            )
+
+            if (viewModel.timerState == TimerState.RUNNING) {
+                ControlButton(
+                    iconRes = R.drawable.icon_pause,
+                    onClick = { viewModel.pauseTimer() }
+                )
             } else {
-                ControlButton(iconRes = R.drawable.icon_resume, onClick = { viewModel.startTimer() })
+                ControlButton(
+                    iconRes = R.drawable.icon_resume,
+                    onClick = { viewModel.startTimer(context) }
+                )
             }
         }
         Spacer(modifier = Modifier.weight(1f))
@@ -157,13 +166,41 @@ private fun StepsCountingScreen(viewModel: StepsViewModel) {
 }
 
 @Composable
-private fun ControlButton(iconRes: Int, onClick: () -> Unit) {
+fun MetricDisplay(
+    value: String,
+    unit: String
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = value,
+            fontSize = 40.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = unit,
+            color = Color.Gray
+        )
+    }
+}
+
+@Composable
+private fun ControlButton(
+    iconRes: Int,
+    onClick: () -> Unit
+) {
     Button(
         onClick = onClick,
-        modifier = Modifier.size(48.dp),
+        modifier = Modifier
+            .size(48.dp),
         shape = CircleShape,
         colors = ButtonDefaults.buttonColors(backgroundColor = Color(0xFF333333))
     ) {
-        Icon(painter = painterResource(id = iconRes), contentDescription = null, tint = Color.White)
+        Icon(
+            painter = painterResource(id = iconRes),
+            contentDescription = null,
+            tint = Color.White
+        )
     }
 }
