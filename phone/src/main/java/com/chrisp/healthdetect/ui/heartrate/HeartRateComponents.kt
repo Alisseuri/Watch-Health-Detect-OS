@@ -71,7 +71,8 @@ fun MainBpmDisplay(bpm: Int, timestamp: Long) {
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFFFD172E),
-                    modifier = Modifier.padding(start = 10.dp, bottom = 10.dp)
+                    modifier = Modifier
+                        .padding(start = 10.dp, bottom = 10.dp)
                 )
             }
             Text(
@@ -148,7 +149,9 @@ fun StatsRow(avg:Int, min: Int, max: Int) {
 }
 
 @Composable
-fun HeartRateInterpretationTable() {
+fun HeartRateInterpretationTable(
+    activeInterpretation: HeartRateInterpretation
+) {
     Column(
         modifier = Modifier
             .padding(top = 8.dp)
@@ -162,18 +165,29 @@ fun HeartRateInterpretationTable() {
             TableCell(text = "Kemungkinan Penyebab", weight = 0.45f, isHeader = true)
         }
         Divider(color = Color.White.copy(alpha = 0.5f))
-        heartRateInterpretationTable.forEach { item ->
             Row(
-                modifier = Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 8.dp, vertical = 12.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(horizontal = 8.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TableCell(text = item.range, weight = 0.25f)
-                TableCell(text = item.interpretation, weight = 0.3f)
-                TableCell(text = item.possibleCauses, weight = 0.45f)
+                TableCell(
+                    text = activeInterpretation.range,
+                    weight = 0.25f
+                )
+                TableCell(
+                    text = activeInterpretation.interpretation,
+                    weight = 0.3f
+                )
+                TableCell(
+                    text = activeInterpretation.possibleCauses,
+                    weight = 0.45f
+                )
             }
             Divider(color = Color.LightGray.copy(alpha = 0.5f))
         }
-    }
+
 }
 //@Composable
 //fun InterpretationTable() {

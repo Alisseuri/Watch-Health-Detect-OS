@@ -89,7 +89,9 @@ fun MainSpo2Display(spo2: Int, timestamp: Long) {
     }
 }
 @Composable
-fun OxygenInterpretationTable() {
+fun OxygenInterpretationTable(
+    activeInterpretation: OxygenInterpretation
+) {
     Column(
         modifier = Modifier.padding(top = 8.dp).clip(RoundedCornerShape(16.dp))
     ) {
@@ -101,17 +103,16 @@ fun OxygenInterpretationTable() {
             TableCell(text = "Kondisi Umum", weight = 0.45f, isHeader = true)
         }
         Divider(color = Color.White.copy(alpha = 0.5f))
-        oxygenInterpretationTable.forEach { item ->
             Row(
                 modifier = Modifier.fillMaxWidth().background(Color.White).padding(horizontal = 8.dp, vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                TableCell(text = item.range, weight = 0.25f)
-                TableCell(text = item.interpretation, weight = 0.3f)
-                TableCell(text = item.generalCondition, weight = 0.45f)
+                TableCell(text = activeInterpretation.range, weight = 0.25f)
+                TableCell(text = activeInterpretation.interpretation, weight = 0.3f)
+                TableCell(text = activeInterpretation.generalCondition, weight = 0.45f)
             }
             Divider(color = Color.LightGray.copy(alpha = 0.5f))
-        }
+
     }
 }
 

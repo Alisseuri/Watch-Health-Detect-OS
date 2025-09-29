@@ -98,7 +98,7 @@ fun OxygenDetailScreen(
                     borderColor = OxygenBlue,
                     isExpanded = isDetailExpanded,
                     onToggle = { isDetailExpanded = !isDetailExpanded },
-                    tableContent = { OxygenInterpretationTable() }
+                    tableContent = { OxygenInterpretationTable(activeInterpretation = interpretation) }
                 )
             }
         }

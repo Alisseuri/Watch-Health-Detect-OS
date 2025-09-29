@@ -108,7 +108,7 @@ fun HeartRateDetailScreen (
                     borderColor = HeartRateGreen,
                     isExpanded = isDetailExpanded,
                     onToggle = { isDetailExpanded = !isDetailExpanded },
-                    tableContent = { HeartRateInterpretationTable() }
+                    tableContent = { HeartRateInterpretationTable(activeInterpretation = interpretation) }
                 )
             }
         }
