@@ -17,6 +17,11 @@ import androidx.core.app.NotificationCompat
 import com.google.android.gms.tasks.Tasks
 import com.google.android.gms.wearable.Wearable
 import com.chrisp.healthdetect.SensorDataRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 
 class HeartRateService : Service(), SensorEventListener {
 
@@ -34,6 +39,9 @@ class HeartRateService : Service(), SensorEventListener {
     private var lastStepUpdateTime: Long = 0L
     private val stepUpdateInterval = 5000L
 
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+
     companion object {
         const val CHANNEL_ID = "HeartRateMonitorChannel"
         const val NOTIFICATION_ID = 1
@@ -45,19 +53,13 @@ class HeartRateService : Service(), SensorEventListener {
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
         heartRateSensor = sensorManager.getDefaultSensor(Sensor.TYPE_HEART_RATE)
         stepCounterSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-        stepsAtStart = getSavedStepsAtStart()
 
-
-        heartRateSensor?.let {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
-        }
-
-        stepCounterSensor?.let {
-            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
-        }
+        // --- PINDAHKAN LOGIKA REGISTER LISTENER ---
+        // Jangan langsung register di sini, tapi dengarkan state
+        listenToMonitoringState()
 
         startForeground(NOTIFICATION_ID, createNotification())
-        Log.d(TAG, "Service created and sensors registered")
+        Log.d(TAG, "Service created")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -72,8 +74,38 @@ class HeartRateService : Service(), SensorEventListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        sensorManager.unregisterListener(this)
+        // --- UBAH KODE INI ---
+        serviceScope.cancel() // Batalkan semua coroutine
+        sensorManager.unregisterListener(this) // Lepaskan listener sebagai pengaman
         Log.d(TAG, "Service destroyed and sensors unregistered")
+        // -------------------
+    }
+
+    private fun listenToMonitoringState() {
+        serviceScope.launch {
+            SensorDataRepository.isMonitoringActive.collect { isActive ->
+                if (isActive) {
+                    registerSensors()
+                } else {
+                    unregisterSensors()
+                }
+            }
+        }
+    }
+
+    private fun registerSensors() {
+        heartRateSensor?.let {
+            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        stepCounterSensor?.let {
+            sensorManager.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+        Log.d(TAG, "Sensors registered. Monitoring ACTIVE.")
+    }
+
+    private fun unregisterSensors() {
+        sensorManager.unregisterListener(this)
+        Log.d(TAG, "Sensors unregistered. Monitoring INACTIVE.")
     }
 
     private fun saveStepsAtStart(value: Int) {

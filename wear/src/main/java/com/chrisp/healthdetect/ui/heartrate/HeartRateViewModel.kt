@@ -45,6 +45,8 @@ class HeartRateViewModel : ViewModel() {
     var result by mutableStateOf<HeartRateResult?>(null)
         private set
 
+
+
     private val heartRateSamples = mutableStateListOf<Int>()
     private var timerJob: Job? = null
 
@@ -56,13 +58,25 @@ class HeartRateViewModel : ViewModel() {
         }
     }
 
-    fun startTimer(context: Context) {
+    override fun onCleared() {
+        super.onCleared()
+        // Pastikan monitoring berhenti jika user keluar dari screen
+        SensorDataRepository.setMonitoringState(false)
+    }
+
+    // --- FUNGSI INI DIUBAH ---
+    fun startTimer() { // Hapus parameter context
         if (timerState == TimerState.RUNNING) return
 
+        SensorDataRepository.setMonitoringState(true)
+
+        // --- HAPUS BAGIAN INTENT INI ---
+        /*
         val intent = Intent(context, HeartRateService::class.java).apply {
             action = "ACTION_START_EXERCISE"
         }
         context.startService(intent)
+        */
 
         if (timerState == TimerState.STOPPED || timerState == TimerState.FINISHED) {
             elapsedTime = 0L
@@ -86,13 +100,19 @@ class HeartRateViewModel : ViewModel() {
         timerJob?.cancel()
     }
 
-    fun stopTimer(context: Context) {
+    // --- FUNGSI INI DIUBAH ---
+    fun stopTimer() { // Hapus parameter context
         timerJob?.cancel()
 
+        SensorDataRepository.setMonitoringState(false)
+
+        // --- HAPUS BAGIAN INTENT INI ---
+        /*
         val intent = Intent(context, HeartRateService::class.java).apply {
             action = "ACTION_STOP_EXERCISE"
         }
         context.startService(intent)
+        */
 
         val averageBpm = if (heartRateSamples.isNotEmpty()) heartRateSamples.average().toInt() else 0
         result = HeartRateResult(
@@ -105,6 +125,7 @@ class HeartRateViewModel : ViewModel() {
     }
 
     fun finishSession() {
+        SensorDataRepository.setMonitoringState(false)
         timerState = TimerState.STOPPED
         elapsedTime = 0L
         heartRateSamples.clear()

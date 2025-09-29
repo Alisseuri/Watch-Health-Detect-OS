@@ -69,13 +69,12 @@ fun HeartRateScreenWithPermission() {
 fun HeartRateScreen(viewModel: HeartRateViewModel = viewModel()) {
     val timerState = viewModel.timerState
     val result = viewModel.result
-    val context = LocalContext.current // Dapatkan context di sini
+    // val context = LocalContext.current // Context tidak lagi dibutuhkan di sini
 
     when (timerState) {
         // --- UBAH PANGGILAN FUNGSI DI SINI ---
-        TimerState.STOPPED -> InitialScreen(onStartClick = { viewModel.startTimer(context) })
+        TimerState.STOPPED -> InitialScreen(onStartClick = { viewModel.startTimer() })
 
-        // --- UBAH PANGGILAN FUNGSI DI SINI ---
         TimerState.RUNNING, TimerState.PAUSED -> CountingScreen(viewModel = viewModel)
 
         TimerState.FINISHED -> {
@@ -86,7 +85,7 @@ fun HeartRateScreen(viewModel: HeartRateViewModel = viewModel()) {
                 )
             } else {
                 // --- UBAH PANGGILAN FUNGSI DI SINI ---
-                InitialScreen(onStartClick = { viewModel.startTimer(context) })
+                InitialScreen(onStartClick = { viewModel.startTimer() })
             }
         }
     }
@@ -137,7 +136,7 @@ private fun CountingScreen(viewModel: HeartRateViewModel) {
         verticalArrangement = Arrangement.Center
     ) {
         Spacer(modifier = Modifier.weight(0.5f))
-        LottieAnimationPlayer(animationRes = R.raw.heart2, modifier = Modifier.size(80.dp))
+        LottieAnimationPlayer(animationRes = R.raw.heart2, modifier = Modifier.size(50.dp))
         Text(
             buildAnnotatedString {
                 withStyle(style = SpanStyle(fontSize = 48.sp, fontWeight = FontWeight.Bold, color = Color(0xFFFBEB73))) {
@@ -154,12 +153,12 @@ private fun CountingScreen(viewModel: HeartRateViewModel) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            Text(viewModel.formatTime(elapsedTime), fontSize = 24.sp)
-            Spacer(modifier = Modifier.width(16.dp))
+            Text(viewModel.formatTime(elapsedTime), fontSize = 12.sp)
+            Spacer(modifier = Modifier.width(5.dp))
 
             ControlButton(
                 iconRes = R.drawable.icon_stop,
-                onClick = { viewModel.stopTimer(context) }
+                onClick = { viewModel.stopTimer() }
             )
             Spacer(modifier = Modifier.width(8.dp))
 
@@ -169,9 +168,10 @@ private fun CountingScreen(viewModel: HeartRateViewModel) {
                     onClick = { viewModel.pauseTimer() }
                 )
             } else {
+                // --- UBAH PANGGILAN FUNGSI DI SINI ---
                 ControlButton(
                     iconRes = R.drawable.icon_resume,
-                    onClick = { viewModel.startTimer(context) }
+                    onClick = { viewModel.startTimer() }
                 )
             }
         }

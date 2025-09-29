@@ -14,6 +14,13 @@ object SensorDataRepository {
         _heartRate.value = newRate
     }
 
+    private val _isMonitoringActive = MutableStateFlow(false)
+    val isMonitoringActive = _isMonitoringActive.asStateFlow()
+
+    fun setMonitoringState(isActive: Boolean) {
+        _isMonitoringActive.value = isActive
+    }
+
     // Step Count Data
     // This will hold the raw step count from the sensor
     private val _stepCount = MutableStateFlow(0)
