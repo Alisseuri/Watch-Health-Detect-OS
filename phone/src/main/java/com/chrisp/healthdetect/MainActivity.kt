@@ -21,6 +21,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.chrisp.healthdetect.network.ProfileApiService
+import com.chrisp.healthdetect.repository.HeartRateRepository
 import com.chrisp.healthdetect.repository.ProfileRepository
 import com.chrisp.healthdetect.ui.activity.ActivityScreen
 import com.chrisp.healthdetect.ui.bmi.BmiDetailScreen
@@ -131,8 +132,7 @@ class MainActivity : ComponentActivity() {
                     // onUsernameChange = { newUsername -> username = newUsername }, // <-- HAPUS INI
                     onOxygenLevelChange = { newOxygenLevel -> oxygenLevel = newOxygenLevel },
                     onHeartRateCardClick = {
-                        val avg = 97; val min = 42; val max = 120
-                        navController.navigate("heartRateDetail/$heartRate/$avg/$min/$max/$lastUpdateTimestamp")
+                        navController.navigate("heartRateDetail/$heartRate/$lastUpdateTimestamp")
                     },
                     onOxygenCardClick = {
                         navController.navigate("oxygenDetail/$oxygenLevel/$lastUpdateTimestamp")
@@ -149,12 +149,9 @@ class MainActivity : ComponentActivity() {
             }
 
             composable(
-                route = "heartRateDetail/{currentBpm}/{avgBpm}/{minBpm}/{maxBpm}/{timestamp}",
+                route = "heartRateDetail/{currentBpm}/{timestamp}",
                 arguments = listOf(
                     navArgument("currentBpm") { type = NavType.IntType },
-                    navArgument("avgBpm") { type = NavType.IntType },
-                    navArgument("minBpm") { type = NavType.IntType },
-                    navArgument("maxBpm") { type = NavType.IntType },
                     navArgument("timestamp") { type = NavType.LongType }
                 )
             ) { backStackEntry ->
@@ -166,11 +163,12 @@ class MainActivity : ComponentActivity() {
 
                 HeartRateDetailScreen(
                     currentBpm = currentBpm,
-                    avgBpm = avgBpm,
-                    minBpm = minBpm,
-                    maxBpm = maxBpm,
                     lastUpdateTimestamp = timestamp,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = {
+                        // Praktik yang baik: bersihkan data repository saat kembali
+                        HeartRateRepository.clearData()
+                        navController.popBackStack()
+                    }
                 )
             }
 

@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.chrisp.healthdetect.repository.HeartRateRepository
 import com.google.android.gms.wearable.MessageEvent
 import com.google.android.gms.wearable.WearableListenerService
 
@@ -72,15 +73,19 @@ class HeartRateWearableListenerService : WearableListenerService() {
 
         when (messageEvent.path) {
             "/heart-rate" -> {
-                val heartRate = String(messageEvent.data, Charsets.UTF_8)
+                val heartRateStr = String(messageEvent.data, Charsets.UTF_8)
+                val heartRate = heartRateStr.toIntOrNull() ?: 0
                 Log.d(TAG, "Heart rate received: $heartRate")
+
+                HeartRateRepository.addHeartRateData(heartRate)
+
                 val broadcastIntent = Intent("HEART_RATE_UPDATE").apply {
                     putExtra("heart_rate", heartRate)
                     addFlags(Intent.FLAG_INCLUDE_STOPPED_PACKAGES)
                 }
                 sendBroadcast(broadcastIntent)
                 Log.d(TAG, "Broadcast sent with heart rate: $heartRate")
-                updateNotificationWithHeartRate(heartRate)
+                updateNotificationWithHeartRate(heartRateStr)
             }
             "/exercise-summary" -> {
                 val summary = String(messageEvent.data, Charsets.UTF_8)

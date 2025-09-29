@@ -229,12 +229,12 @@ fun OxygenCard(
 
                 Row {
                     Text (
-                    "$oxygenLevel",
-                    fontSize = 50.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = OxygenBlue,
-                    modifier = Modifier.padding(top = 16.dp)
-                )
+                        "$oxygenLevel",
+                        fontSize = 50.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = OxygenBlue,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
                     Text(
                         "%",
                         fontSize = 30.sp,

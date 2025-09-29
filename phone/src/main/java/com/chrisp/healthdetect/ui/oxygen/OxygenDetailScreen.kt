@@ -53,7 +53,8 @@ fun OxygenDetailScreen(
                     Text(
                         "Oxygen Level",
                         fontWeight = FontWeight.SemiBold,
-                        fontSize = 30.sp
+                        fontSize = 30.sp,
+                        color = Color.Black
                     )
                 },
                 navigationIcon = {

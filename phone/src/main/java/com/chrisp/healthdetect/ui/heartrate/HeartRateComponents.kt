@@ -239,15 +239,12 @@ fun RowScope.TableCell(text: String, weight: Float, isHeader: Boolean = false) {
     )
 }
 
-@Preview(showBackground = true)
-@Composable
-fun HeartRateDetailScreenPrev() {
-        HeartRateDetailScreen(
-            currentBpm = 55,
-            avgBpm = 97,
-            minBpm = 42,
-            maxBpm = 120,
-            lastUpdateTimestamp = System.currentTimeMillis(),
-            onBackClick = {}
-        )
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun HeartRateDetailScreenPrev() {
+//    HeartRateDetailScreen(
+//        currentBpm = 90,
+//        lastUpdateTimestamp = System.currentTimeMillis(),
+//        onBackClick = {}
+//    )
+//}

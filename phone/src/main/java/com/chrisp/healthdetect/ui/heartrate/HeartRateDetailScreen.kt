@@ -21,6 +21,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import com.chrisp.healthdetect.R
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,6 +35,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.chrisp.healthdetect.ui.dashboard.LottieAnimationPlayer
 import com.chrisp.healthdetect.ui.theme.DarkText
 import com.chrisp.healthdetect.ui.theme.HeartRateGreen
@@ -48,13 +50,15 @@ import kotlin.math.max
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun HeartRateDetailScreen (
-    currentBpm: Int,
-    avgBpm: Int,
-    minBpm: Int,
-    maxBpm: Int,
+    currentBpm: Int, // Ini adalah BPM terakhir yang diterima, dari navigasi
     lastUpdateTimestamp: Long,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    viewModel: HeartRateDetailViewModel = viewModel()
 ) {
+    val averageBpm by viewModel.averageHeartRate.collectAsState()
+    val minBpm by viewModel.minHeartRate.collectAsState()
+    val maxBpm by viewModel.maxHeartRate.collectAsState()
+
     val interpretation = getInterpretationForBpm(currentBpm)
     var isDetailExpanded by remember { mutableStateOf(false) }
 
@@ -92,9 +96,9 @@ fun HeartRateDetailScreen (
                 Spacer(modifier = Modifier.height(24.dp))
                 MainBpmDisplay(bpm = currentBpm, timestamp = lastUpdateTimestamp)
             }
-            
+
             item {
-                StatsRow(avg = avgBpm, min = minBpm, max = maxBpm)
+                StatsRow(avg = averageBpm, min = minBpm, max = maxBpm)
             }
 
             item {
@@ -118,12 +122,9 @@ fun HeartRateDetailScreen (
 @Preview(showBackground = true)
 @Composable
 fun HeartRateDetailScreenPreview() {
-        HeartRateDetailScreen(
-            currentBpm = 55,
-            avgBpm = 97,
-            minBpm = 42,
-            maxBpm = 120,
-            lastUpdateTimestamp = System.currentTimeMillis(),
-            onBackClick = {}
-        )
+    HeartRateDetailScreen(
+        currentBpm = 90,
+        lastUpdateTimestamp = System.currentTimeMillis(),
+        onBackClick = {}
+    )
 }
