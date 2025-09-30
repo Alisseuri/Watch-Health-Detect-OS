@@ -58,10 +58,10 @@ class MainActivity : ComponentActivity() {
         val navController = rememberNavController()
         val context = LocalContext.current
 
-        var heartRate by remember { mutableStateOf(85) }
+        var heartRate by remember { mutableStateOf(0) }
         var lastUpdateTimestamp by remember { mutableStateOf(System.currentTimeMillis()) }
 //        var username by remember { mutableStateOf("Chris") }
-        var oxygenLevel by remember { mutableStateOf("98") }
+        var oxygenLevel by remember { mutableStateOf(0) }
 
         // Create shared API service and repository
         val apiService = remember {
@@ -130,7 +130,7 @@ class MainActivity : ComponentActivity() {
                     oxygenLevel = oxygenLevel,
                     // Hapus parameter username, karena data ini akan diambil dari ViewModel
                     // onUsernameChange = { newUsername -> username = newUsername }, // <-- HAPUS INI
-                    onOxygenLevelChange = { newOxygenLevel -> oxygenLevel = newOxygenLevel },
+//                    onOxygenLevelChange = { newOxygenLevel -> oxygenLevel = newOxygenLevel },
                     onHeartRateCardClick = {
                         navController.navigate("heartRateDetail/$heartRate/$lastUpdateTimestamp")
                     },

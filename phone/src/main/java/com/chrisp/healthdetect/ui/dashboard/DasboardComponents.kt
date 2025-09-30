@@ -150,11 +150,15 @@ fun HeartRateCard(
                         .align(Alignment.BottomCenter)
                 )
                 Column {
+                    val hasData = heartRate > 0
                     Row(
                         verticalAlignment = Alignment.Bottom,
                         modifier = Modifier.padding(start = 16.dp)
                     ) {
-                        Text("$heartRate",
+                        val displayText = if (heartRate > 0) heartRate.toString() else "--"
+
+                        Text(
+                            displayText,
                             fontSize = 40.sp,
                             color = Color.White,
                             fontWeight = FontWeight.Bold,
@@ -162,17 +166,32 @@ fun HeartRateCard(
                         )
                         Spacer(Modifier.width(8.dp))
 
-                        Text("BPM",
-                            fontSize = 16.sp,
-                            color = Color.White,
-                            modifier = Modifier.padding(bottom = 8.dp)
+                        if (hasData) {
+                            Text(
+                                "BPM",
+                                fontSize = 16.sp,
+                                color = Color.White,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                        }
+//                        Text("BPM",
+//                            fontSize = 16.sp,
+//                            color = Color.White,
+//                            modifier = Modifier.padding(bottom = 8.dp)
+//                        )
+                    }
+                    if (hasData) {
+                        Text(
+                            timeAgo,
+                            fontSize = 12.sp,
+                            color = Color.LightGray.copy(alpha = 0.8f)
                         )
                     }
-                    Text(timeAgo,
-                        fontSize = 12.sp,
-                        color = Color.LightGray.copy(alpha = 0.8f),
-                        modifier = Modifier.padding(start = 16.dp, bottom = 20.dp)
-                    )
+//                    Text(timeAgo,
+//                        fontSize = 12.sp,
+//                        color = Color.LightGray.copy(alpha = 0.8f),
+//                        modifier = Modifier.padding(start = 16.dp, bottom = 20.dp)
+//                    )
                 }
             }
         }
@@ -185,6 +204,9 @@ fun OxygenCard(
     oxygenLevel: Int,
     onClick: () -> Unit
 ) {
+    val displayText = if (oxygenLevel > 0) oxygenLevel.toString() else "--"
+    val hasData = oxygenLevel > 0
+
     Card(
         modifier = modifier
             .height(260.dp)
@@ -194,7 +216,9 @@ fun OxygenCard(
         border = BorderStroke(1.dp, OxygenBlue)
     ) {
         Column(Modifier.padding(top = 16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Icon(
                     painterResource(id = R.drawable.oxygen_icon),
                     "Oxygen",
@@ -228,21 +252,24 @@ fun OxygenCard(
                 )
 
                 Row {
-                    Text (
-                        "$oxygenLevel",
+                    Text(
+                        displayText,
                         fontSize = 50.sp,
                         fontWeight = FontWeight.Bold,
                         color = OxygenBlue,
                         modifier = Modifier.padding(top = 16.dp)
                     )
-                    Text(
-                        "%",
-                        fontSize = 30.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = OxygenBlue,
-                        modifier = Modifier.padding(start = 2.dp, top = 33.dp)
-                    ) }
 
+                    if (hasData) {
+                        Text(
+                            "%",
+                            fontSize = 30.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = OxygenBlue,
+                            modifier = Modifier.padding(start = 2.dp, top = 33.dp)
+                        )
+                    }
+                }
             }
         }
     }

@@ -46,6 +46,9 @@ import com.chrisp.healthdetect.ui.util.formatTimeAgo
 
 @Composable
 fun MainBpmDisplay(bpm: Int, timestamp: Long) {
+    val hasData = bpm > 0
+    val displayText = if (hasData) bpm.toString() else "--"
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -60,7 +63,7 @@ fun MainBpmDisplay(bpm: Int, timestamp: Long) {
         Column {
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
-                    text = "$bpm",
+                    text = displayText,
                     fontSize = 80.sp,
                     fontWeight = FontWeight.Bold,
                     color = DarkText,
@@ -75,12 +78,15 @@ fun MainBpmDisplay(bpm: Int, timestamp: Long) {
                         .padding(start = 10.dp, bottom = 10.dp)
                 )
             }
-            Text(
-                text = formatTimeAgo(timestamp),
-                color = LightGrayText,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(start = 8.dp)
-            )
+            if (hasData) {
+                Text(
+                    text = formatTimeAgo(timestamp),
+                    color = LightGrayText,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+
             Image(
                 painter = painterResource(id = R.drawable.heart_line),
                 contentDescription = "Garis BPM",
@@ -95,6 +101,9 @@ fun MainBpmDisplay(bpm: Int, timestamp: Long) {
 @Composable
 fun StatItem(label: String, value: Int, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        val hasData = value > 0
+        val displayText = if (hasData) value.toString() else "--"
+
         Text(
             label,
             color = color,
@@ -107,7 +116,7 @@ fun StatItem(label: String, value: Int, color: Color) {
             modifier = Modifier.padding(top = 4.dp)
         ) {
             Text(
-                "$value",
+                displayText,
                 fontSize = 40.sp,
                 fontWeight = FontWeight.Bold,
                 color = DarkText,
@@ -189,6 +198,20 @@ fun HeartRateInterpretationTable(
         }
 
 }
+
+@Composable
+fun RowScope.TableCell(text: String, weight: Float, isHeader: Boolean = false) {
+    Text(
+        text = text,
+        modifier = Modifier
+            .weight(weight)
+            .padding(horizontal = 4.dp),
+        fontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal,
+        color = if (isHeader) Color.White else DarkText,
+        fontSize = 14.sp
+    )
+}
+
 //@Composable
 //fun InterpretationTable() {
 //    Column(
@@ -225,19 +248,6 @@ fun HeartRateInterpretationTable(
 //        }
 //    }
 //}
-
-@Composable
-fun RowScope.TableCell(text: String, weight: Float, isHeader: Boolean = false) {
-    Text(
-        text = text,
-        modifier = Modifier
-            .weight(weight)
-            .padding(horizontal = 4.dp),
-        fontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal,
-        color = if (isHeader) Color.White else DarkText,
-        fontSize = 14.sp
-    )
-}
 
 //@Preview(showBackground = true)
 //@Composable

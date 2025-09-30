@@ -59,8 +59,8 @@ fun DashboardScreen(
     navController: NavController,
     heartRate: Int,
     lastUpdatedTimestamp: Long,
-    oxygenLevel: String,
-    onOxygenLevelChange: (String) -> Unit,
+    oxygenLevel: Int,
+//    onOxygenLevelChange: (String) -> Unit,
     onHeartRateCardClick: () -> Unit,
     onOxygenCardClick: () -> Unit,
     profileViewModel: ProfileViewModel
@@ -98,7 +98,7 @@ fun DashboardScreen(
             item {
                 VitalsSection(
                     heartRate = currentHeartRate,
-                    oxygenLevel = oxygenLevel.toIntOrNull() ?: 0,
+                    oxygenLevel = oxygenLevel,
                     lastUpdateTimestamp = lastUpdatedTimestamp,
                     onHeartRateCardClick = onHeartRateCardClick,
                     onOxygenCardClick = onOxygenCardClick
