@@ -14,6 +14,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -81,11 +83,61 @@ private fun UserListItem(user: UserDisplay, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .padding(16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(user.name, fontWeight = FontWeight.Bold)
-        Text(text = user.dobString, color = Color.Gray)
+        Text(
+            text = user.name,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.weight(1f),
+            maxLines = 20,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        Text(
+            text = user.dobString,
+            color = Color.Gray,
+            modifier = Modifier.weight(1f),
+            textAlign = TextAlign.End
+        )
     }
 }
 
+@Preview(name = "Dialog Pencarian - Awal", showBackground = true, backgroundColor = 0x80000000)
+@Composable
+fun UserSearchDialogPreview() {
+    // 1. Buat data palsu dengan tipe yang benar (UserDisplay)
+    val dummyUsers = listOf(
+        UserDisplay(id = "1", name = "Aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", dobString = "09/09/1999"),
+        UserDisplay(id = "2", name = "Budi Santoso", dobString = "15/03/1994"),
+        UserDisplay(id = "3", name = "Citra Lestari", dobString = "21/11/1996"),
+        UserDisplay(id = "4", name = "Dewi Anggraini", dobString = "05/07/1990"),
+        UserDisplay(id = "5", name = "Eka Prasetya", dobString = "12/01/2001")
+    )
+
+        UserSearchDialog(
+            users = dummyUsers,
+            searchQuery = "",
+            onQueryChange = {},
+            onUserSelected = {},
+            onDismiss = {}
+        )
+}
+
+@Preview(name = "Dialog Pencarian - Terfilter", showBackground = true, backgroundColor = 0x80000000)
+@Composable
+fun UserSearchDialogFilteredPreview() {
+    val dummyUsers = listOf(
+        UserDisplay(id = "1", name = "Chris P.", dobString = "09/09/1999"),
+        UserDisplay(id = "2", name = "Budi Santoso", dobString = "15/03/1994"),
+        UserDisplay(id = "3", name = "Citra Lestari", dobString = "21/11/1996"),
+        UserDisplay(id = "4", name = "Dewi Anggraini", dobString = "05/07/1990")
+    )
+
+        UserSearchDialog(
+            users = dummyUsers.filter { it.name.contains("a", ignoreCase = true) },
+            searchQuery = "a",
+            onQueryChange = {},
+            onUserSelected = {},
+            onDismiss = {}
+        )
+}

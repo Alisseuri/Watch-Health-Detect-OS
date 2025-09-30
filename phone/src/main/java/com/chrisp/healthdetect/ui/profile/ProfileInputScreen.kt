@@ -89,7 +89,14 @@ fun ProfileInputScreen(
                 )
             }
 
-            item { AverageHeartRateDisplay(avgRate = averageHeartRate) }
+//            item { AverageHeartRateDisplay(avgRate = averageHeartRate) }
+            item {
+                HeartRateInputSection(
+                    avgRate = averageHeartRate,
+                    manualRate = uiState.manualHeartRate,
+                    onManualRateChange = viewModel::onManualHeartRateChange
+                )
+            }
 
             item {
                 PersonalInfoInput(
@@ -209,7 +216,7 @@ fun ProfileInputScreen(
                         Text("PILIH DATA", color = Color.White)
                     }
                 }
-            
+
             item {
                     ActionButtons(
                         onCancelClick = {
@@ -269,6 +276,91 @@ private fun InputHeader(
                 unfocusedContainerColor = Color.White.copy(alpha = 0.9f)
             )
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun HeartRateInputSection(
+    avgRate: Int,
+    manualRate: String,
+    onManualRateChange: (String) -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            LottieAnimationPlayer(
+                animationRes = R.raw.heart2,
+                modifier = Modifier.size(80.dp)
+            )
+            Spacer(Modifier.width(16.dp))
+
+            Card(
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                modifier = Modifier.weight(1f)
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Text(
+                        "Detak Jantung Rata-Rata (Sensor)",
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    )
+
+                    Row(verticalAlignment = Alignment.Bottom) {
+                        Text(
+                            text = if (avgRate > 0) avgRate.toString() else "--",
+                            fontSize = 32.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        if (avgRate > 0) {
+                            Text(
+                                "BPM",
+                                modifier = Modifier
+                                .padding(start = 4.dp, bottom = 4.dp)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OutlinedTextField(
+                value = manualRate,
+                onValueChange = onManualRateChange,
+                modifier = Modifier.weight(1f),
+                placeholder = { Text("...atau isi detak jantung", color = Color.Gray) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    unfocusedBorderColor = Color.LightGray,
+                    focusedBorderColor = HeartRateGreen
+                ),
+                trailingIcon = {
+                    if (manualRate.isNotBlank()) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.check),
+                            contentDescription = "Terisi",
+                            tint = HeartRateGreen
+                        )
+                    }
+                }
+            )
+            Text("BPM", fontWeight = FontWeight.Bold, color = DarkText)
+        }
     }
 }
 

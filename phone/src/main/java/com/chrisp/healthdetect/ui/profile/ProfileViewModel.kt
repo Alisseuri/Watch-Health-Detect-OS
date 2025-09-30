@@ -63,6 +63,7 @@ data class UserProfileData(
     val hdlCholesterol: String = "",
     val systolicBp: String = "",
     val oxygenSaturation: String = "",
+    val manualHeartRate: String = "",
     val height: String = "",
     val weight: String = "",
     val activityLevel: ActivityLevel = ActivityLevel.BEDREST,
@@ -136,20 +137,47 @@ class ProfileViewModel(
 
     // === Setter Functions ===
     fun onNameChange(newName: String) { uiState = uiState.copy(name = newName) }
+
     fun onDobChange(newDob: LocalDate) { uiState = uiState.copy(dob = newDob) }
+
     fun onGenderChange(newGender: Gender) { uiState = uiState.copy(gender = newGender) }
+
     fun onRaceChange(newRace: Race) { uiState = uiState.copy(race = newRace) }
+
     fun onSmokerChange(selection: YesNo) { uiState = uiState.copy(isSmoker = selection) }
+
     fun onDiabetesChange(selection: YesNo) { uiState = uiState.copy(hasDiabetes = selection) }
+
     fun onTotalCholesterolChange(value: String) { uiState = uiState.copy(totalCholesterol = value) }
+
     fun onHdlCholesterolChange(value: String) { uiState = uiState.copy(hdlCholesterol = value) }
+
     fun onSystolicBpChange(value: String) { uiState = uiState.copy(systolicBp = value) }
+
     fun onOxygenSaturationChange(value: String) { uiState = uiState.copy(oxygenSaturation = value) }
+
     fun onHeightChange(value: String) { uiState = uiState.copy(height = value) }
+
     fun onWeightChange(value: String) { uiState = uiState.copy(weight = value) }
-    fun onActivityLevelChange(newLevel: ActivityLevel) { uiState = uiState.copy(activityLevel = newLevel) }
-    fun onStressLevelChange(newLevel: StressLevel) { uiState = uiState.copy(stressLevel = newLevel) }
-    fun setEditMode(isEditing: Boolean) { uiState = uiState.copy(isEditMode = isEditing) }
+
+    fun onActivityLevelChange(newLevel: ActivityLevel) {
+        uiState = uiState.copy(activityLevel = newLevel)
+    }
+
+    fun onStressLevelChange(newLevel: StressLevel) {
+        uiState = uiState.copy(stressLevel = newLevel)
+    }
+
+    fun onManualHeartRateChange(value: String) {
+        if (value.all { it.isDigit() }) {
+            uiState = uiState.copy(manualHeartRate = value)
+        }
+    }
+
+    fun setEditMode(isEditing: Boolean) {
+        uiState = uiState.copy(isEditMode = isEditing)
+    }
+
     fun saveProfile() { setEditMode(false) }
 
     // === Validation ===
@@ -362,6 +390,8 @@ class ProfileViewModel(
             return
         }
 
+        val finalHeartRate = uiState.manualHeartRate.toIntOrNull() ?: averageHeartRate.value.takeIf { it > 0 } ?: 0
+
         val age = getAge()!!
         val genderStr = if (uiState.gender == Gender.PRIA) "male" else "female"
         val raceStr = uiState.race!!.displayName
@@ -376,7 +406,7 @@ class ProfileViewModel(
             systolicBP = uiState.systolicBp.toInt(),
             isSmoker = uiState.isSmoker == YesNo.YA,
             isDiabetic = uiState.hasDiabetes == YesNo.YA,
-            restingHeartRates = listOf(87)
+            restingHeartRates = listOf(finalHeartRate)
         )
 
         _loading.value = true
