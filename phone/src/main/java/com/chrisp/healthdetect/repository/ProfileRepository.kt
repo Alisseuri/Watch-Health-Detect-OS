@@ -9,4 +9,5 @@ class ProfileRepository(private val api: ProfileApiService) {
     suspend fun submitFramingham(request: FraminghamRequest) = api.submitFramingham(request)
     suspend fun submitNutrition(request: NutritionRequest) = api.submitNutrition(request)
     suspend fun getNutritionResult(userId: String) = api.getNutritionResult(userId)
+    suspend fun searchUsers(query: String) = api.searchUsers(query)
 }

@@ -2,6 +2,7 @@ package com.chrisp.healthdetect.ui.profile
 
 import android.R.attr.level
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -58,21 +59,19 @@ fun ProfileScreen(
     navController: NavController,
     profileViewModel: ProfileViewModel,
 ) {
-    // --- DIHAPUS ---
-    // Jangan buat apiService dan repository di sini.
-    // ViewModel yang Anda terima sudah memilikinya.
-    /*
-    val apiService = remember { ... }
-    val repository = remember { ProfileRepository(apiService) }
-    */
 
     val uiState by remember { derivedStateOf { profileViewModel.uiState } }
     val loading by profileViewModel.loading.collectAsState()
     val error by profileViewModel.error.collectAsState()
+    val allUsers by profileViewModel.allUsersForDisplay.collectAsState()
     val filteredUsers by profileViewModel.filteredUsers
 
+
+    // PENTING: Tambahkan log di sini untuk melihat perubahan state
+    Log.d("ProfileScreen", "Recomposing. Filtered users count: ${filteredUsers.size}")
     if (profileViewModel.isSearchDialogVisible) {
         UserSearchDialog(
+            // Pass the reactive state to the dialog
             users = filteredUsers,
             searchQuery = profileViewModel.searchQuery,
             onQueryChange = profileViewModel::onSearchQueryChange,

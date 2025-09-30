@@ -1,6 +1,7 @@
 package com.chrisp.healthdetect.ui.profile
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -18,8 +19,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.LocalDate
 import java.time.Period
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 // === ENUMs ===
 enum class Gender { PRIA, WANITA }
@@ -98,10 +102,12 @@ class ProfileViewModel(
 
     @RequiresApi(Build.VERSION_CODES.O)
     val filteredUsers = derivedStateOf {
+        // Gunakan allUsersForDisplay yang sudah bertipe List<UserDisplay>
+        val usersToDisplay = allUsersForDisplay.value
         if (searchQuery.isBlank()) {
-            allUsersForDisplay.value
+            usersToDisplay
         } else {
-            allUsersForDisplay.value.filter { it.name.contains(searchQuery, ignoreCase = true) }
+            usersToDisplay.filter { it.name.contains(searchQuery, ignoreCase = true) }
         }
     }
 
@@ -155,21 +161,33 @@ class ProfileViewModel(
     fun onSearchQueryChange(query: String) { searchQuery = query }
 
     fun showSearchDialog() {
-        loadAllUsers()
+        Log.d("ProfileViewModel", "showSearchDialog called. Attempting to load users.")
+        loadAllUsers() // Memuat daftar pengguna saat dialog akan ditampilkan
         isSearchDialogVisible = true
     }
-    fun hideSearchDialog() { isSearchDialogVisible = false }
+
+    fun hideSearchDialog() {
+        isSearchDialogVisible = false
+    }
 
     private fun loadAllUsers() {
         viewModelScope.launch {
+            // Jangan tampilkan loading global, agar tidak mengganggu UI utama
+            // _loading.value = true
+            _error.value = null
+            Log.d("ProfileViewModel", "loadAllUsers: Starting API call.")
             try {
-                _loading.value = true
-                _error.value = null
-                _allUsers.value = repository.getAllUsers()
+                val usersFromApi = repository.getAllUsers()
+                // PENTING: Log jumlah data yang berhasil didapat
+                Log.d("ProfileViewModel", "loadAllUsers: Success! Fetched ${usersFromApi.size} users.")
+                _allUsers.value = usersFromApi
+
             } catch (e: Exception) {
+                // PENTING: Log jika terjadi error
+                Log.e("ProfileViewModel", "loadAllUsers: FAILED to fetch users.", e)
                 _error.value = "Gagal memuat daftar pengguna: ${e.message}"
             } finally {
-                _loading.value = false
+                // _loading.value = false
             }
         }
     }
@@ -180,27 +198,125 @@ class ProfileViewModel(
             _loading.value = true
             _error.value = null
             try {
-                val nutritionRes = repository.getNutritionResult(userId)
-                val user = nutritionRes.user
-                val nutritionData = nutritionRes.nutritionData
-                val calculatedDob = LocalDate.now().minusYears(user.age.toLong())
+                // 1. Panggil API search dengan ID untuk mendapatkan data lengkap
+                val searchResult = repository.searchUsers(userId)
+                if (searchResult.isEmpty()) {
+                    throw Exception("Pengguna dengan ID $userId tidak ditemukan.")
+                }
+
+                // Ambil data dari hasil pencarian pertama
+
+                val userResult = searchResult.first()
+                val nutritionData = userResult.nutritionData.firstOrNull()
+                val healthData = userResult.healthData.firstOrNull()
+                val riskAssessment = userResult.riskAssessments.firstOrNull()
+                val userGender = if (userResult.gender.equals("male", ignoreCase = true)) {
+                    Gender.PRIA
+                } else {
+                    Gender.WANITA
+                }
+
+                // 2. Isi uiState untuk ditampilkan di form input
+                val calculatedDob = LocalDate.now().minusYears(userResult.age.toLong())
 
                 uiState = uiState.copy(
-                    name = user.name,
+                    isEditMode = false, // Langsung ke mode display
+                    name = userResult.name,
                     dob = calculatedDob,
-                    gender = Gender.valueOf(user.gender.uppercase()),
-                    race = Race.values().find { it.displayName == user.race },
-                    height = nutritionData.height.toString(),
-                    weight = nutritionData.weight.toString(),
-                    activityLevel = ActivityLevel.valueOf(nutritionData.activityLevel.uppercase()),
-                    stressLevel = StressLevel.valueOf(nutritionData.stressLevel.uppercase()),
-                    isEditMode = false
+                    gender = userGender,
+                    // Data kesehatan
+                    race = Race.values().find { it.displayName == healthData?.race },
+                    isSmoker = healthData?.isSmoker?.let { if (it) YesNo.YA else YesNo.TIDAK } ?: YesNo.TIDAK,
+                    hasDiabetes = healthData?.isDiabetic?.let { if (it) YesNo.YA else YesNo.TIDAK } ?: YesNo.TIDAK,
+                    totalCholesterol = healthData?.totalCholesterol?.toString() ?: "",
+                    hdlCholesterol = healthData?.hdlCholesterol?.toString() ?: "",
+                    systolicBp = healthData?.systolicBP?.toString() ?: "",
+                    // Data Nutrisi
+                    height = nutritionData?.height?.toString() ?: "",
+                    weight = nutritionData?.weight?.toString() ?: "",
+                    activityLevel = nutritionData?.activityLevel?.let { ActivityLevel.valueOf(it.uppercase()) } ?: ActivityLevel.BEDREST,
+                    stressLevel = nutritionData?.stressLevel?.let { StressLevel.valueOf(it.uppercase()) } ?: StressLevel.RINGAN
                 )
 
-                _nutritionResult.value = nutritionRes
+                // 3. Rekonstruksi dan isi StateFlow untuk halaman hasil (DisplayScreen)
+
+                // Buat objek User
+                val user = User(
+                    id = userResult.id,
+                    name = userResult.name,
+                    age = userResult.age,
+                    gender = userResult.gender,
+                    race = healthData?.race
+                )
+
+                // Isi _nutritionResult
+                if (nutritionData != null && nutritionData.result != null) {
+                    _nutritionResult.value = NutritionResponse(
+                        user = user,
+                        nutritionData = com.chrisp.healthdetect.model.NutritionData(
+                            id = nutritionData.id,
+                            userId = nutritionData.userId,
+                            weight = nutritionData.weight,
+                            height = nutritionData.height,
+                            activityLevel = nutritionData.activityLevel,
+                            stressLevel = nutritionData.stressLevel
+                        ),
+                        result = NutritionResult(
+                            bmi = nutritionData.result.bmi,
+                            bmiCategory = nutritionData.result.bmiCategory,
+                            idealWeight = nutritionData.result.idealWeight,
+                            bmr = nutritionData.result.bmr,
+                            tee = nutritionData.result.tee,
+                            proteinGram = nutritionData.result.proteinGram,
+                            proteinKcal = nutritionData.result.proteinKcal,
+                            proteinPercent = nutritionData.result.proteinPercent,
+                            fatGram = nutritionData.result.fatGram,
+                            fatKcal = nutritionData.result.fatKcal,
+                            fatPercent = nutritionData.result.fatPercent,
+                            carbGram = nutritionData.result.carbGram,
+                            carbKcal = nutritionData.result.carbKcal,
+                            carbPercent = nutritionData.result.carbPercent
+                        )
+                    )
+                }
+
+                // Isi _framinghamResult dan _ascvdResult
+                if (riskAssessment != null) {
+                    val assessmentDate = riskAssessment.assessmentDate.let {
+                        // Coba format tanggal ISO ke format yang lebih mudah dibaca
+                        try {
+                            val instant = Instant.parse(it)
+                            val localDate = instant.atZone(ZoneId.systemDefault()).toLocalDate()
+                            localDate.format(DateTimeFormatter.ofPattern("dd MMMM yyyy"))
+                        } catch (e: Exception) {
+                            it // fallback ke string asli jika format salah
+                        }
+                    }
+
+                    val response = FraminghamResponse(
+                        user = user,
+                        framingham = FraminghamResult(
+                            riskScore = riskAssessment.framinghamScore,
+                            riskLevel = riskAssessment.framinghamLevel,
+                            riskPercentage = riskAssessment.framinghamPercentage,
+                            avgHeartRate = healthData?.avgHeartRate?.toFloat(),
+                            message = riskAssessment.framinghamMessage,
+                            assessmentDate = assessmentDate
+                        ),
+                        ascvd = AscvdResult(
+                            ascvdScore = riskAssessment.ascvdScore,
+                            ascvdLevel = riskAssessment.ascvdLevel,
+                            ascvdMessage = riskAssessment.ascvdMessage,
+                            assessmentDate = assessmentDate
+                        )
+                    )
+                    _framinghamResult.value = response
+                    _ascvdResult.value = response
+                }
 
             } catch (e: Exception) {
                 _error.value = "Gagal memuat data pengguna: ${e.message}"
+                Log.e("ProfileViewModel", "Error selecting user", e)
             } finally {
                 _loading.value = false
                 hideSearchDialog()
