@@ -85,6 +85,7 @@ class ProfileViewModel(
     var searchQuery by mutableStateOf("")
         private set
 
+    @RequiresApi(Build.VERSION_CODES.O)
     val allUsersForDisplay: StateFlow<List<UserDisplay>> = _allUsers.map { userList ->
         userList.map { user ->
             UserDisplay(
@@ -95,11 +96,12 @@ class ProfileViewModel(
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    @RequiresApi(Build.VERSION_CODES.O)
     val filteredUsers = derivedStateOf {
         if (searchQuery.isBlank()) {
-            _allUsers.value
+            allUsersForDisplay.value
         } else {
-            _allUsers.value.filter { it.name.contains(searchQuery, ignoreCase = true) }
+            allUsersForDisplay.value.filter { it.name.contains(searchQuery, ignoreCase = true) }
         }
     }
 

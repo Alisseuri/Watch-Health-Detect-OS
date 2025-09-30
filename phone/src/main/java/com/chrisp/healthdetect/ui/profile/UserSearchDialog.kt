@@ -89,19 +89,3 @@ private fun UserListItem(user: UserDisplay, onClick: () -> Unit) {
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0x80000000)
-@Composable
-fun UserSearchDialogPreview() {
-    val dummyUsers = listOf(
-        UserDisplay(id = "1", name = "Chris P.", dobString = "09/09/1999"),
-        UserDisplay(id = "2", name = "Budi Santoso", dobString = "15/03/1994"),
-        UserDisplay(id = "3", name = "Citra Lestari", dobString = "21/11/1996")
-    )
-        UserSearchDialog(
-            users = dummyUsers,
-            searchQuery = "",
-            onQueryChange = {},
-            onUserSelected = {},
-            onDismiss = {}
-        )
-}

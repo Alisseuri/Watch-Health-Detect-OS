@@ -199,32 +199,31 @@ fun ProfileInputScreen(
                     }
                 }
             }
-
+                item {
+                    Button(
+                        onClick = { viewModel.showSearchDialog() },
+                        modifier = Modifier.fillMaxSize(),
+                        colors = ButtonDefaults.buttonColors(containerColor = HeartRateGreen),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text("PILIH DATA", color = Color.White)
+                    }
+                }
+            
             item {
-                Button(
-                    onClick = { viewModel.showSearchDialog() },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = HeartRateGreen),
-                    shape = RoundedCornerShape(12.dp)
-                ) {
-                    Text("PILIH DATA", color = Color.White)
+                    ActionButtons(
+                        onCancelClick = {
+                            if (uiState.name.isNotBlank()) viewModel.setEditMode(false)
+                        },
+                        onSaveClick = {
+                            if (!loading) {
+                                viewModel.submitAll()
+                            }
+                        },
+                        loading = loading
+                    )
                 }
             }
-
-            item {
-                ActionButtons(
-                    onCancelClick = {
-                        if (uiState.name.isNotBlank()) viewModel.setEditMode(false)
-                    },
-                    onSaveClick = {
-                        if (!loading) {
-                            viewModel.submitAll()
-                        }
-                    },
-                    loading = loading
-                )
-            }
-        }
     }
 }
 
