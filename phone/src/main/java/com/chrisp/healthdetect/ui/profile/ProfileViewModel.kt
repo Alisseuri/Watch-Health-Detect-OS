@@ -2,6 +2,7 @@ package com.chrisp.healthdetect.ui.profile
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.chrisp.healthdetect.model.*
 import com.chrisp.healthdetect.repository.HeartRateRepository
 import com.chrisp.healthdetect.repository.ProfileRepository
+import com.chrisp.healthdetect.ui.util.ageToDobString
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -63,13 +65,43 @@ data class UserProfileData(
     val stressLevel: StressLevel = StressLevel.BERAT
 )
 
-// === VIEWMODEL ===
+data class UserDisplay(
+    val id: String,
+    val name: String,
+    val dobString: String
+)
+
 class ProfileViewModel(
     private val repository: ProfileRepository
 ) : ViewModel() {
 
     var uiState by mutableStateOf(UserProfileData())
         private set
+
+    var isSearchDialogVisible by mutableStateOf(false)
+        private set
+    private val _allUsers = MutableStateFlow<List<User>>(emptyList())
+
+    var searchQuery by mutableStateOf("")
+        private set
+
+    val allUsersForDisplay: StateFlow<List<UserDisplay>> = _allUsers.map { userList ->
+        userList.map { user ->
+            UserDisplay(
+                id = user.id,
+                name = user.name,
+                dobString = ageToDobString(user.age)
+            )
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val filteredUsers = derivedStateOf {
+        if (searchQuery.isBlank()) {
+            _allUsers.value
+        } else {
+            _allUsers.value.filter { it.name.contains(searchQuery, ignoreCase = true) }
+        }
+    }
 
     val averageHeartRate: StateFlow<Int> = HeartRateRepository.heartRateDataList.map { list ->
         if (list.isNotEmpty()) list.average().toInt() else 0
@@ -117,6 +149,62 @@ class ProfileViewModel(
     fun isHdlCholesterolNormal(): Boolean? = uiState.hdlCholesterol.toIntOrNull()?.let { it >= 40 }
     fun isSystolicBpNormal(): Boolean? = uiState.systolicBp.toIntOrNull()?.let { it < 140 }
     fun isOxygenSaturationNormal(): Boolean? = uiState.oxygenSaturation.toIntOrNull()?.let { it in 95..100 }
+
+    fun onSearchQueryChange(query: String) { searchQuery = query }
+
+    fun showSearchDialog() {
+        loadAllUsers()
+        isSearchDialogVisible = true
+    }
+    fun hideSearchDialog() { isSearchDialogVisible = false }
+
+    private fun loadAllUsers() {
+        viewModelScope.launch {
+            try {
+                _loading.value = true
+                _error.value = null
+                _allUsers.value = repository.getAllUsers()
+            } catch (e: Exception) {
+                _error.value = "Gagal memuat daftar pengguna: ${e.message}"
+            } finally {
+                _loading.value = false
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun selectUser(userId: String) {
+        viewModelScope.launch {
+            _loading.value = true
+            _error.value = null
+            try {
+                val nutritionRes = repository.getNutritionResult(userId)
+                val user = nutritionRes.user
+                val nutritionData = nutritionRes.nutritionData
+                val calculatedDob = LocalDate.now().minusYears(user.age.toLong())
+
+                uiState = uiState.copy(
+                    name = user.name,
+                    dob = calculatedDob,
+                    gender = Gender.valueOf(user.gender.uppercase()),
+                    race = Race.values().find { it.displayName == user.race },
+                    height = nutritionData.height.toString(),
+                    weight = nutritionData.weight.toString(),
+                    activityLevel = ActivityLevel.valueOf(nutritionData.activityLevel.uppercase()),
+                    stressLevel = StressLevel.valueOf(nutritionData.stressLevel.uppercase()),
+                    isEditMode = false
+                )
+
+                _nutritionResult.value = nutritionRes
+
+            } catch (e: Exception) {
+                _error.value = "Gagal memuat data pengguna: ${e.message}"
+            } finally {
+                _loading.value = false
+                hideSearchDialog()
+            }
+        }
+    }
 
     // === Age Calculation ===
     @RequiresApi(Build.VERSION_CODES.O)

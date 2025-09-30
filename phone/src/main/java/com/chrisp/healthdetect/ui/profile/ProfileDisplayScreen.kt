@@ -20,6 +20,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
@@ -51,7 +53,8 @@ fun ProfileDisplayScreen(
     navController: NavController,
     uiState: UserProfileData,
     onEditClick: () -> Unit,
-    viewModel: ProfileViewModel
+    viewModel: ProfileViewModel,
+    onShowSearchDialog: () -> Unit
 ) {
     Scaffold(
         containerColor = BackgroundGray,
@@ -106,6 +109,17 @@ fun ProfileDisplayScreen(
 
             item {
                 DisplayStressLevel(level = uiState.stressLevel)
+            }
+
+            item {
+                Button(
+                    onClick = { onShowSearchDialog() },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = HeartRateGreen),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("PILIH DATA", color = Color.White)
+                }
             }
         }
     }

@@ -56,7 +56,7 @@ class ProfileViewModelFactory(private val repository: ProfileRepository) : ViewM
 @Composable
 fun ProfileScreen(
     navController: NavController,
-    profileViewModel: ProfileViewModel // <-- Cukup terima ini, sudah lengkap!
+    profileViewModel: ProfileViewModel,
 ) {
     // --- DIHAPUS ---
     // Jangan buat apiService dan repository di sini.
@@ -66,12 +66,21 @@ fun ProfileScreen(
     val repository = remember { ProfileRepository(apiService) }
     */
 
-    // Langsung gunakan state dari profileViewModel yang diterima
     val uiState by remember { derivedStateOf { profileViewModel.uiState } }
     val loading by profileViewModel.loading.collectAsState()
     val error by profileViewModel.error.collectAsState()
+    val filteredUsers by profileViewModel.filteredUsers
 
-    // Logika ini sudah benar
+    if (profileViewModel.isSearchDialogVisible) {
+        UserSearchDialog(
+            users = filteredUsers,
+            searchQuery = profileViewModel.searchQuery,
+            onQueryChange = profileViewModel::onSearchQueryChange,
+            onUserSelected = profileViewModel::selectUser,
+            onDismiss = profileViewModel::hideSearchDialog
+        )
+    }
+
     if (uiState.isEditMode) {
         ProfileInputScreen(
             navController = navController,
@@ -84,7 +93,8 @@ fun ProfileScreen(
             navController = navController,
             uiState = uiState,
             onEditClick = { profileViewModel.setEditMode(true) },
-            viewModel = profileViewModel // <-- DITAMBAHKAN: Pass ViewModel ke DisplayScreen
+            viewModel = profileViewModel,
+            onShowSearchDialog = { profileViewModel.showSearchDialog() }
         )
     }
 }

@@ -201,6 +201,17 @@ fun ProfileInputScreen(
             }
 
             item {
+                Button(
+                    onClick = { viewModel.showSearchDialog() },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = HeartRateGreen),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("PILIH DATA", color = Color.White)
+                }
+            }
+
+            item {
                 ActionButtons(
                     onCancelClick = {
                         if (uiState.name.isNotBlank()) viewModel.setEditMode(false)
